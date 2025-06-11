@@ -1,14 +1,24 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import OnboardingFlow from '../components/OnboardingFlow';
+import Dashboard from '../components/Dashboard';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentScreen, setCurrentScreen] = useState('onboarding'); // 'onboarding', 'dashboard'
+  const [user, setUser] = useState(null);
+
+  const handleOnboardingComplete = (userData) => {
+    setUser(userData);
+    setCurrentScreen('dashboard');
+  };
+
+  if (currentScreen === 'onboarding') {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
+
+  return <Dashboard user={user} />;
 };
 
 export default Index;

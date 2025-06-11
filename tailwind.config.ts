@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Inter', 'system-ui', 'sans-serif'],
+				'handwriting': ['Caveat', 'cursive'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -61,6 +66,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom StreakSpark colors
+				spark: {
+					purple: '#8B5CF6',
+					pink: '#EC4899',
+					orange: '#F97316',
+					green: '#10B981',
+					blue: '#3B82F6'
 				}
 			},
 			borderRadius: {
@@ -84,11 +97,36 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'bounce-gentle': {
+					'0%, 100%': {
+						transform: 'translateY(0)',
+						animationTimingFunction: 'cubic-bezier(0,0,0.2,1)'
+					},
+					'50%': {
+						transform: 'translateY(-4px)',
+						animationTimingFunction: 'cubic-bezier(0.8,0,1,1)'
+					}
+				},
+				'pulse-soft': {
+					'0%, 100%': {
+						opacity: '1'
+					},
+					'50%': {
+						opacity: '0.8'
+					}
+				},
+				'confetti': {
+					'0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(180deg)', opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'bounce-gentle': 'bounce-gentle 2s infinite',
+				'pulse-soft': 'pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'confetti': 'confetti 1s ease-out forwards'
 			}
 		}
 	},

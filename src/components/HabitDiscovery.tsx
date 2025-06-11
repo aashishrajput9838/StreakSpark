@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
@@ -246,10 +245,10 @@ const HabitDiscovery = ({ onAddHabit, onBack, userPreferences }: HabitDiscoveryP
                         {habit.description}
                       </p>
                       <div className="flex gap-1 mt-2">
-                        <Badge size="sm" className={getDifficultyColor(habit.difficulty)}>
+                        <Badge className={getDifficultyColor(habit.difficulty)}>
                           {habit.difficulty}
                         </Badge>
-                        <Badge size="sm" variant="outline">
+                        <Badge variant="outline">
                           {habit.timeEstimate}
                         </Badge>
                       </div>

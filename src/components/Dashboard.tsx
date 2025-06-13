@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import DashboardHeader from './dashboard/DashboardHeader';
 import CalendarWidget from './dashboard/CalendarWidget';
 import WeatherWidget from './dashboard/WeatherWidget';
-import ShouldDoWidget from './dashboard/ShouldDoWidget';
-import TodosWidget from './dashboard/TodosWidget';
 import IntegrationsWidget from './dashboard/IntegrationsWidget';
-import AnalyticsWidget from './dashboard/AnalyticsWidget';
-import RunningCompetitionWidget from './dashboard/RunningCompetitionWidget';
 import SyncAppWidget from './dashboard/SyncAppWidget';
-import FavoriteHabitsWidget from './dashboard/FavoriteHabitsWidget';
+import AIAssistanceWidget from './dashboard/AIAssistanceWidget';
+import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
 import { useHabits, Habit } from '@/hooks/useHabits';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -166,16 +163,13 @@ const Dashboard = () => {
         <div className="flex flex-col gap-6 md:col-span-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <WeatherWidget />
-            <TodosWidget />
           </div>
-          <ShouldDoWidget />
-          <RunningCompetitionWidget />
+          <FriendsLeaderboardWidget />
         </div>
         {/* Right column */}
         <div className="flex flex-col gap-6 md:col-span-1">
           <IntegrationsWidget />
-          <AnalyticsWidget />
-          <FavoriteHabitsWidget />
+          <AIAssistanceWidget />
         </div>
       </div>
     </div>

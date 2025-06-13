@@ -30,7 +30,6 @@ const Navbar: React.FC = () => {
         <div className="space-x-4">
           {user ? (
             <>
-              <Link to="/" className="hover:underline">Home</Link>
               <Link to="/habits" className="hover:underline">Habits</Link>
               <Link to="/index" className="hover:underline">Dashboard</Link>
               <Link to="/about" className="hover:underline">About</Link>

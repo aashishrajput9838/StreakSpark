@@ -81,10 +81,26 @@ const Dashboard = () => {
     return Array.from(new Set(days));
   };
 
-  // Habits completed on selected day
-  const habitsForSelectedDay = habits.filter(habit =>
-    habit.completedDates.includes(selectedDay)
-  );
+  // Calculate completion rates for the current month (actual current month) and previous month
+  const today = new Date();
+  const currentActualMonth = today.getMonth();
+  const currentActualYear = today.getFullYear();
+
+  const daysInCurrentActualMonth = new Date(currentActualYear, currentActualMonth + 1, 0).getDate();
+  const completedDaysCurrentActualMonth = getCompletedDays(currentActualYear, currentActualMonth).length;
+  const currentMonthCompletionRate = daysInCurrentActualMonth > 0
+    ? (completedDaysCurrentActualMonth / daysInCurrentActualMonth) * 100
+    : 0;
+
+  const previousActualMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const previousActualMonth = previousActualMonthDate.getMonth();
+  const previousActualYear = previousActualMonthDate.getFullYear();
+
+  const daysInPreviousActualMonth = new Date(previousActualYear, previousActualMonth + 1, 0).getDate();
+  const completedDaysPreviousActualMonth = getCompletedDays(previousActualYear, previousActualMonth).length;
+  const previousMonthCompletionRate = daysInPreviousActualMonth > 0
+    ? (completedDaysPreviousActualMonth / daysInPreviousActualMonth) * 100
+    : 0;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
@@ -131,22 +147,6 @@ const Dashboard = () => {
             setSelectedDay={setSelectedDay}
             habitsByDate={habitsByDate}
           />
-          {/* Show habits for selected day */}
-          <div className="bg-white rounded-xl p-4 shadow mt-4">
-            <div className="font-semibold mb-2">Habits for {selectedDay}</div>
-            {habitsForSelectedDay.length > 0 ? (
-              <ul className="space-y-2">
-                {habitsForSelectedDay.map(h => (
-                  <li key={h.id} className="flex items-center gap-2">
-                    <span className="text-xl">🎯</span> {/* Placeholder icon */}
-                    <span className="font-medium">{h.title}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-gray-400 text-sm">No habits completed on this day.</div>
-            )}
-          </div>
           <SyncAppWidget />
         </div>
         {/* Main/center column */}

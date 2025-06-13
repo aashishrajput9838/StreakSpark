@@ -112,7 +112,6 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selected
           );
         })}
       </div>
-      <div className="text-green-600 text-xs mt-2 font-semibold">+3.2% from last month</div>
     </div>
   );
 };

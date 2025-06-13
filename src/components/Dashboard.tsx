@@ -81,6 +81,14 @@ const Dashboard = () => {
     return Array.from(new Set(days));
   };
 
+  // Filter habits to display only those scheduled for the selected day
+  const habitsForDisplay = habits.filter(habit => {
+    // For simplicity, let's assume only daily habits are currently relevant for day-wise display
+    // If weekly/monthly scheduling needs to be considered, the Habit interface needs to be extended
+    // with fields like `dayOfWeek` or `dayOfMonth` for specific scheduling.
+    return habit.frequency === 'daily';
+  });
+
   // Calculate completion rates for the current month (actual current month) and previous month
   const today = new Date();
   const currentActualMonth = today.getMonth();
@@ -117,11 +125,11 @@ const Dashboard = () => {
         <div className="flex flex-col gap-6 md:col-span-1">
           <DashboardHeader onAddHabit={handleAddHabit} />
           {/* Display habits managed by Firebase here */}
-          {habits.length > 0 && (
+          {habitsForDisplay.length > 0 && (
             <div className="bg-white rounded-xl p-4 shadow mt-4">
               <div className="font-semibold mb-2">Your Habits</div>
               <ul className="space-y-2">
-                {habits.map(h => {
+                {habitsForDisplay.map(h => {
                   const isCompleted = h.completedDates.includes(selectedDay);
                   return (
                     <li key={h.id} className="flex items-center gap-2">
@@ -139,6 +147,11 @@ const Dashboard = () => {
                   );
                 })}
               </ul>
+            </div>
+          )}
+          {!habitsForDisplay.length && (
+            <div className="bg-white rounded-xl p-4 shadow mt-4 text-gray-500">
+              No daily habits for this day.
             </div>
           )}
           <CalendarWidget

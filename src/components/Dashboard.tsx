@@ -102,11 +102,6 @@ const Dashboard = () => {
     ? (completedDaysPreviousActualMonth / daysInPreviousActualMonth) * 100
     : 0;
 
-  // Habits completed on selected day
-  const habitsForSelectedDay = habits.filter(habit =>
-    habit.completedDates.includes(selectedDay)
-  );
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
   }
@@ -152,22 +147,6 @@ const Dashboard = () => {
             setSelectedDay={setSelectedDay}
             habitsByDate={habitsByDate}
           />
-          {/* Show habits for selected day */}
-          <div className="bg-white rounded-xl p-4 shadow mt-4">
-            <div className="font-semibold mb-2">Habits for {selectedDay}</div>
-            {habitsForSelectedDay.length > 0 ? (
-              <ul className="space-y-2">
-                {habitsForSelectedDay.map(h => (
-                  <li key={h.id} className="flex items-center gap-2">
-                    <span className="text-xl">🎯</span> {/* Placeholder icon */}
-                    <span className="font-medium">{h.title}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-gray-400 text-sm">No habits completed on this day.</div>
-            )}
-          </div>
           <SyncAppWidget />
         </div>
         {/* Main/center column */}

@@ -6,7 +6,8 @@ import { addDocument, updateDocument, deleteDocument } from '@/lib/firebase-util
 
 export interface Habit {
   id: string;
-  name: string;
+  title: string;
+  name?: string;
   description?: string;
   frequency: 'daily' | 'weekly' | 'monthly';
   userId: string;
@@ -43,6 +44,7 @@ export function useHabits() {
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate(),
           lastCompleted: doc.data().lastCompleted?.toDate(),
+          name: doc.data().title,
         })) as Habit[];
         setHabits(habitsData);
         setLoading(false);
@@ -57,7 +59,7 @@ export function useHabits() {
     return () => unsubscribe();
   }, [user]);
 
-  const createHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak'>) => {
+  const createHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted'> & { title: string }) => {
     if (!user) throw new Error('User must be logged in');
 
     try {

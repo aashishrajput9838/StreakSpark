@@ -1,4 +1,6 @@
 import React from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Habit } from '@/hooks/useHabits';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -6,9 +8,10 @@ interface CalendarWidgetProps {
   completedDays: (year: number, month: number) => number[];
   selectedDay: string;
   setSelectedDay: (date: string) => void;
+  habitsByDate: { [date: string]: Habit[] };
 }
 
-const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selectedDay, setSelectedDay }) => {
+const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selectedDay, setSelectedDay, habitsByDate }) => {
   const today = new Date();
   const [viewDate, setViewDate] = React.useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -69,26 +72,45 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selected
         {WEEKDAYS.map(w => <div key={w}>{w}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {daysArray.map((day, idx) =>
-          day ? (
-            <div
-              key={idx}
-              onClick={() => setSelectedDay(formatDate(day))}
-              className={`relative rounded-full w-7 h-7 flex items-center justify-center cursor-pointer
-                ${isCurrentMonth && day === currentDay && viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear() ? 'bg-orange-200 text-orange-900 font-bold' : ''}
-                ${selectedDay === formatDate(day) ? 'ring-2 ring-orange-400' : ''}
-                hover:bg-gray-100`}
-            >
-              {day}
-              {/* Mark completed days with a green dot */}
-              {completed.includes(day) && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
-              )}
-            </div>
+        {daysArray.map((day, idx) => {
+          const formattedDate = day ? formatDate(day) : '';
+          const habitsOnThisDay = habitsByDate[formattedDate] || [];
+          const isDayCompleted = completed.includes(day);
+
+          return day ? (
+            <Tooltip key={idx} delayDuration={300}>
+              <TooltipTrigger asChild>
+                <div
+                  onClick={() => setSelectedDay(formattedDate)}
+                  className={`relative rounded-full w-7 h-7 flex items-center justify-center cursor-pointer
+                    ${isCurrentMonth && day === currentDay && viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear() ? 'bg-orange-200 text-orange-900 font-bold' : ''}
+                    ${selectedDay === formattedDate ? 'ring-2 ring-orange-400' : ''}
+                    hover:bg-gray-100`}
+                >
+                  {day}
+                  {/* Mark completed days with a green dot */}
+                  {isDayCompleted && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {habitsOnThisDay.length > 0 ? (
+                  <div className="space-y-1">
+                    <p className="font-semibold">Habits for {formattedDate}:</p>
+                    {habitsOnThisDay.map(habit => (
+                      <p key={habit.id} className="text-sm">• {habit.name}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm">No habits completed</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
           ) : (
             <div key={idx} />
-          )
-        )}
+          );
+        })}
       </div>
       <div className="text-green-600 text-xs mt-2 font-semibold">+3.2% from last month</div>
     </div>

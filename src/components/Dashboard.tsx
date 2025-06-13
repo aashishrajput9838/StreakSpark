@@ -22,8 +22,22 @@ const Dashboard = () => {
   const { habits, loading, error, createHabit, toggleHabitCompletion } = useHabits();
   const [selectedDay, setSelectedDay] = useState<string>(formatDate(new Date()));
 
+  // Prepare habits organized by date for the calendar tooltip
+  const habitsByDate: { [date: string]: Habit[] } = React.useMemo(() => {
+    const map: { [date: string]: Habit[] } = {};
+    habits.forEach(habit => {
+      habit.completedDates.forEach(dateStr => {
+        if (!map[dateStr]) {
+          map[dateStr] = [];
+        }
+        map[dateStr].push(habit);
+      });
+    });
+    return map;
+  }, [habits]);
+
   // Handle adding a new habit from the DashboardHeader modal
-  const handleAddHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak'>) => {
+  const handleAddHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted'>) => {
     if (!user) {
       toast.error("You must be logged in to add habits.");
       return;
@@ -96,7 +110,7 @@ const Dashboard = () => {
                   return (
                     <li key={h.id} className="flex items-center gap-2">
                       <span className="text-xl">🎯</span> {/* Placeholder icon */}
-                      <span className="font-medium">{h.name}</span>
+                      <span className="font-medium">{h.title}</span>
                       <span className="text-xs text-gray-400">{h.frequency}</span>
                       <button
                         className={`ml-auto text-xs border rounded px-2 py-1 ${isCompleted ? 'text-gray-400 border-gray-200 bg-gray-50 cursor-not-allowed' : 'text-green-600 border-green-200 hover:bg-green-50'}`}
@@ -115,6 +129,7 @@ const Dashboard = () => {
             completedDays={getCompletedDays}
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
+            habitsByDate={habitsByDate}
           />
           {/* Show habits for selected day */}
           <div className="bg-white rounded-xl p-4 shadow mt-4">
@@ -124,7 +139,7 @@ const Dashboard = () => {
                 {habitsForSelectedDay.map(h => (
                   <li key={h.id} className="flex items-center gap-2">
                     <span className="text-xl">🎯</span> {/* Placeholder icon */}
-                    <span className="font-medium">{h.name}</span>
+                    <span className="font-medium">{h.title}</span>
                   </li>
                 ))}
               </ul>

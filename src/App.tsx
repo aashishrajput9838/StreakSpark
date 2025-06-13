@@ -12,6 +12,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import TestPage from './pages/TestPage';
 import HabitsPage from './pages/HabitsPage';
+import DiscoverHabitsPage from './pages/DiscoverHabitsPage';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -40,6 +41,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <HabitsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/discover-habits"
+                  element={
+                    <ProtectedRoute>
+                      <DiscoverHabitsPage />
                     </ProtectedRoute>
                   }
                 />

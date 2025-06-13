@@ -31,6 +31,7 @@ const Navbar: React.FC = () => {
           {user ? (
             <>
               <Link to="/" className="hover:underline">Home</Link>
+              <Link to="/habits" className="hover:underline">Habits</Link>
               <Link to="/index" className="hover:underline">Dashboard</Link>
               <Link to="/about" className="hover:underline">About</Link>
               <Link to="/contact" className="hover:underline">Contact</Link>

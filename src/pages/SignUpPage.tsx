@@ -27,7 +27,7 @@ const SignUpPage: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">Sign Up for StreakSpark</h1>
-      <form className="max-w-md" onSubmit={handleSignUp}>
+      <form className="max-w-3xl mx-auto" onSubmit={handleSignUp}>
         <div className="mb-4">
           <label className="block text-gray-700">Email</label>
           <input 

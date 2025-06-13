@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, ArrowLeft, Filter, Sparkles } from 'lucide-react';
+import { Search, Plus, ArrowLeft, Filter, Sparkles, Settings } from 'lucide-react';
 import { habitLibrary, habitCategories, Habit } from '../data/habitLibrary';
 
 interface HabitDiscoveryProps {
@@ -141,18 +141,20 @@ const HabitDiscovery = ({ onAddHabit, onBack, userPreferences }: HabitDiscoveryP
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-4">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="p-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-lg font-semibold">Discover Habits</h1>
-          <div className="w-9" />
+        <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 p-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="sm" onClick={onBack}>
+                <ArrowLeft className="w-5 h-5 mr-2" /> Back
+              </Button>
+              <h1 className="text-xl font-bold">Discover Habits</h1>
+              <Button variant="ghost" size="sm">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Search */}

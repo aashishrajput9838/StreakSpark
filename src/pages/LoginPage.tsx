@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Successfully logged in!");
-      navigate('/'); // Redirect to home page after successful login
+      navigate('/index'); // Redirect to main landing page after successful login
     } catch (error: any) {
       alert(error.message);
     }
@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">Login to StreakSpark</h1>
-      <form className="max-w-md" onSubmit={handleLogin}>
+      <form className="max-w-3xl mx-auto" onSubmit={handleLogin}>
         <div className="mb-4">
           <label className="block text-gray-700">Email</label>
           <input 

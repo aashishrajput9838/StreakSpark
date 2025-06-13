@@ -1,31 +1,15 @@
-
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import OnboardingFlow from '../components/OnboardingFlow';
+import React from 'react';
 import Dashboard from '../components/Dashboard';
-import { Button } from '@/components/ui/button';
-
-interface UserData {
-  name: string;
-  routine: string;
-  personality: string[];
-  goals: string[];
-}
 
 const Index = () => {
-  const [currentScreen, setCurrentScreen] = useState('onboarding'); // 'onboarding', 'dashboard'
-  const [user, setUser] = useState<UserData | null>(null);
-
-  const handleOnboardingComplete = (userData: UserData) => {
-    setUser(userData);
-    setCurrentScreen('dashboard');
+  const defaultUser = {
+    name: "Guest",
+    routine: "morning",
+    personality: ["creative"],
+    goals: ["fitness"],
   };
 
-  if (currentScreen === 'onboarding') {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-  }
-
-  return user ? <Dashboard user={user} /> : null;
+  return <Dashboard user={defaultUser} />;
 };
 
 export default Index;

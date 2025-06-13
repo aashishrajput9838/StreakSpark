@@ -81,6 +81,27 @@ const Dashboard = () => {
     return Array.from(new Set(days));
   };
 
+  // Calculate completion rates for the current month (actual current month) and previous month
+  const today = new Date();
+  const currentActualMonth = today.getMonth();
+  const currentActualYear = today.getFullYear();
+
+  const daysInCurrentActualMonth = new Date(currentActualYear, currentActualMonth + 1, 0).getDate();
+  const completedDaysCurrentActualMonth = getCompletedDays(currentActualYear, currentActualMonth).length;
+  const currentMonthCompletionRate = daysInCurrentActualMonth > 0
+    ? (completedDaysCurrentActualMonth / daysInCurrentActualMonth) * 100
+    : 0;
+
+  const previousActualMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const previousActualMonth = previousActualMonthDate.getMonth();
+  const previousActualYear = previousActualMonthDate.getFullYear();
+
+  const daysInPreviousActualMonth = new Date(previousActualYear, previousActualMonth + 1, 0).getDate();
+  const completedDaysPreviousActualMonth = getCompletedDays(previousActualYear, previousActualMonth).length;
+  const previousMonthCompletionRate = daysInPreviousActualMonth > 0
+    ? (completedDaysPreviousActualMonth / daysInPreviousActualMonth) * 100
+    : 0;
+
   // Habits completed on selected day
   const habitsForSelectedDay = habits.filter(habit =>
     habit.completedDates.includes(selectedDay)

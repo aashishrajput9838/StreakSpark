@@ -1,7 +1,23 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const HomePage: React.FC = () => {
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+
+  // Redirect logged-in users to the dashboard
+  React.useEffect(() => {
+    if (user) {
+      navigate('/index');
+    }
+  }, [user, navigate]);
+
+  // If user is logged in, return null or a loading spinner while redirecting
+  if (user) {
+    return <div className="min-h-screen flex items-center justify-center">Redirecting...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white relative overflow-hidden flex flex-col justify-between">
       {/* Main Content Area */}

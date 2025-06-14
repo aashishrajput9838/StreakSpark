@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -67,13 +66,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom StreakSpark colors
-				spark: {
-					purple: '#8B5CF6',
-					pink: '#EC4899',
-					orange: '#F97316',
-					green: '#10B981',
-					blue: '#3B82F6'
+				// Custom palette colors
+				appPalette: {
+					yellow: '#FFD700',
+					orange: '#FF8C00',
+					pink: '#FF1493',
+					purple: '#8A2BE2',
+					blue: '#4169E1',
+					'dark-background': '#1a1a1a', // A very dark gray/black for backgrounds
+					'dark-card': '#2a2a2a', // Slightly lighter dark for cards
+					'dark-border': '#404040', // Dark border
+					'dark-text': '#f0f0f0', // Light text for dark backgrounds
+					'dark-muted': '#a0a0a0', // Muted text for dark backgrounds
 				}
 			},
 			borderRadius: {

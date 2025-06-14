@@ -108,22 +108,22 @@ const Dashboard = () => {
     : 0;
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-appPalette-dark-text">Loading dashboard...</div>;
   }
 
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading dashboard: {error}</div>;
+    return <div className="min-h-screen flex items-center justify-center text-appPalette-orange">Error loading dashboard: {error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-appPalette-dark-background text-appPalette-dark-text p-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Left column */}
         <div className="flex flex-col gap-6 md:col-span-1">
           <DashboardHeader onAddHabit={handleAddHabit} />
           {/* Display habits managed by Firebase here */}
           {habitsForDisplay.length > 0 && (
-            <div className="bg-white rounded-xl p-4 shadow mt-4">
+            <div className="bg-appPalette-dark-card rounded-xl p-4 shadow mt-4">
               <div className="font-semibold mb-2">Your Habits</div>
               <ul className="space-y-2">
                 {habitsForDisplay.map(h => {
@@ -132,9 +132,9 @@ const Dashboard = () => {
                     <li key={h.id} className="flex items-center gap-2">
                       <span className="text-xl">🎯</span> {/* Placeholder icon */}
                       <span className="font-medium">{h.title}</span>
-                      <span className="text-xs text-gray-400">{h.frequency}</span>
+                      <span className="text-xs text-appPalette-dark-muted">{h.frequency}</span>
                       <button
-                        className={`ml-auto text-xs border rounded px-2 py-1 ${isCompleted ? 'text-gray-400 border-gray-200 bg-gray-50 cursor-not-allowed' : 'text-green-600 border-green-200 hover:bg-green-50'}`}
+                        className={`ml-auto text-xs border rounded px-2 py-1 ${isCompleted ? 'text-appPalette-dark-muted border-appPalette-dark-border bg-appPalette-dark-background cursor-not-allowed' : 'text-appPalette-pink border-appPalette-purple bg-appPalette-dark-card hover:bg-appPalette-purple'}`}
                         onClick={() => handleCompleteHabit(h.id)}
                         disabled={isCompleted}
                       >
@@ -147,7 +147,7 @@ const Dashboard = () => {
             </div>
           )}
           {!habitsForDisplay.length && (
-            <div className="bg-white rounded-xl p-4 shadow mt-4 text-gray-500">
+            <div className="bg-appPalette-dark-card rounded-xl p-4 shadow mt-4 text-appPalette-dark-muted">
               No daily habits for this day.
             </div>
           )}

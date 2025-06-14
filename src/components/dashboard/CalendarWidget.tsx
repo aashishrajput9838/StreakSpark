@@ -56,19 +56,19 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selected
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow flex flex-col gap-4">
+    <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-4 text-appPalette-dark-text">
       <div className="flex items-center justify-between mb-2">
-        <button onClick={handlePrevMonth} className="text-xl px-2 hover:text-orange-600">&#8592;</button>
+        <button onClick={handlePrevMonth} className="text-xl px-2 hover:text-appPalette-orange">&#8592;</button>
         <div className="font-semibold">{month}, {year}</div>
         <button
           onClick={handleNextMonth}
-          className={`text-xl px-2 ${isFutureMonth ? 'text-gray-300 cursor-not-allowed' : 'hover:text-orange-600'}`}
+          className={`text-xl px-2 ${isFutureMonth ? 'text-appPalette-dark-muted cursor-not-allowed' : 'hover:text-appPalette-orange'}`}
           disabled={isFutureMonth}
         >
           &#8594;
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-400 mb-1">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-appPalette-dark-muted mb-1">
         {WEEKDAYS.map(w => <div key={w}>{w}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
@@ -83,18 +83,18 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selected
                 <div
                   onClick={() => setSelectedDay(formattedDate)}
                   className={`relative rounded-full w-7 h-7 flex items-center justify-center cursor-pointer
-                    ${isCurrentMonth && day === currentDay && viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear() ? 'bg-orange-200 text-orange-900 font-bold' : ''}
-                    ${selectedDay === formattedDate ? 'ring-2 ring-orange-400' : ''}
-                    hover:bg-gray-100`}
+                    ${isCurrentMonth && day === currentDay && viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear() ? 'bg-appPalette-orange text-white font-bold' : ''}
+                    ${selectedDay === formattedDate ? 'ring-2 ring-appPalette-pink' : ''}
+                    hover:bg-appPalette-purple`}
                 >
                   {day}
                   {/* Mark completed days with a green dot */}
                   {isDayCompleted && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-appPalette-blue rounded-full border border-appPalette-dark-background"></span>
                   )}
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-appPalette-dark-card text-appPalette-dark-text border-appPalette-dark-border">
                 {habitsOnThisDay.length > 0 ? (
                   <div className="space-y-1">
                     <p className="font-semibold">Habits for {formattedDate}:</p>
@@ -103,7 +103,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({ completedDays, selected
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm">No habits completed</p>
+                  <p className="text-sm text-appPalette-dark-muted">No habits completed</p>
                 )}
               </TooltipContent>
             </Tooltip>

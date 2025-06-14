@@ -58,7 +58,7 @@ const WeatherWidget: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-yellow-50 rounded-xl p-6 shadow flex flex-col gap-2 items-center">
+      <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-2 items-center text-appPalette-dark-text">
         Loading weather...
       </div>
     );
@@ -66,7 +66,7 @@ const WeatherWidget: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-yellow-50 rounded-xl p-6 shadow flex flex-col gap-2 items-center text-red-500">
+      <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-2 items-center text-appPalette-orange">
         {error}
       </div>
     );
@@ -74,21 +74,21 @@ const WeatherWidget: React.FC = () => {
 
   if (!weather) {
     return (
-      <div className="bg-yellow-50 rounded-xl p-6 shadow flex flex-col gap-2 items-center">
+      <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-2 items-center text-appPalette-dark-muted">
         Weather data not available.
       </div>
     );
   }
 
   return (
-    <div className="bg-yellow-50 rounded-xl p-6 shadow flex flex-col gap-2 items-center">
-      <div className="text-xl font-semibold text-gray-800 mb-2">{weather.location.name}</div>
+    <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-2 items-center text-appPalette-dark-text">
+      <div className="text-xl font-semibold mb-2">{weather.location.name}</div>
       <div className="flex items-center gap-2">
         <img src={weather.current.condition.icon} alt={weather.current.condition.text} className="w-10 h-10" />
         <span className="text-3xl font-bold">{Math.round(weather.current.temp_c)}°C</span>
       </div>
-      <div className="text-lg font-semibold text-gray-800">{weather.current.condition.text}</div>
-      <div className="flex gap-4 text-xs text-gray-600 mt-2">
+      <div className="text-lg font-semibold">{weather.current.condition.text}</div>
+      <div className="flex gap-4 text-xs text-appPalette-dark-muted mt-2">
         <span>Wind {weather.current.wind_kph.toFixed(1)} km/h</span>
         <span>Humidity {weather.current.humidity}%</span>
       </div>
@@ -102,4 +102,4 @@ const WeatherWidget: React.FC = () => {
   );
 };
 
-export default WeatherWidget; 
+export default WeatherWidget;

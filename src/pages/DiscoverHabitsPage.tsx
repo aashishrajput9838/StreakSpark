@@ -23,7 +23,7 @@ const DiscoverHabitsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-appPalette-dark-background text-appPalette-dark-text p-4">
       <div className="max-w-7xl mx-auto">
         <HabitDiscovery onAddHabit={handleAddHabit} onBack={handleBack} />
       </div>

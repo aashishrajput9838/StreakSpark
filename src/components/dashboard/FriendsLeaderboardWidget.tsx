@@ -20,15 +20,15 @@ const FriendsLeaderboardWidget: React.FC = () => {
   const sortedFriends = [...mockFriends].sort((a, b) => b.streak - a.streak);
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow flex flex-col gap-4">
+    <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-4 text-appPalette-dark-text">
       <h2 className="text-xl font-semibold mb-2">Friends Leaderboard</h2>
       <div className="space-y-3">
         {sortedFriends.map((friend, index) => (
-          <div key={friend.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 ease-in-out">
-            <span className="font-bold text-lg text-gray-700 w-6 text-center">{index + 1}.</span>
+          <div key={friend.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-appPalette-dark-background hover:bg-appPalette-dark-border transition-colors duration-200 ease-in-out">
+            <span className="font-bold text-lg text-appPalette-dark-muted w-6 text-center">{index + 1}.</span>
             <img src={friend.avatar} alt={friend.name} className="w-10 h-10 rounded-full object-cover" />
-            <span className="font-medium text-gray-800 flex-grow">{friend.name}</span>
-            <span className="text-lg font-semibold text-purple-600">{friend.streak} day{friend.streak !== 1 ? 's' : ''} streak</span>
+            <span className="font-medium text-appPalette-dark-text flex-grow">{friend.name}</span>
+            <span className="text-lg font-semibold text-appPalette-pink">{friend.streak} day{friend.streak !== 1 ? 's' : ''} streak</span>
           </div>
         ))}
       </div>

@@ -9,7 +9,11 @@ const Index = () => {
     goals: ["fitness"],
   };
 
-  return <Dashboard user={defaultUser} />;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-appPalette-purple-950 to-appPalette-purple-700 text-white">
+      <Dashboard />
+    </div>
+  );
 };
 
 export default Index;

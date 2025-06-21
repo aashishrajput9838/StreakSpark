@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,7 +52,7 @@ const LoginPage: React.FC = () => {
           {/* Password Input */}
           <div className="relative">
           <input 
-            type="password" 
+            type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               className="w-full px-4 py-3 pl-10 rounded-xl bg-appPalette-dark-background border border-appPalette-dark-border focus:outline-none focus:ring-2 focus:ring-appPalette-pink text-appPalette-dark-text placeholder-appPalette-dark-muted"
             value={password}
@@ -61,9 +62,16 @@ const LoginPage: React.FC = () => {
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-2-6h4m4 0h-4m-4 0V9m-6 3h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z"></path></svg>
             </span>
-            {/* Eye icon for password visibility - won't implement functionality now, just the icon */}
-            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted cursor-pointer">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            {/* Eye icon for password visibility */}
+            <span 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .95-3.112 3.543-5.45 6.848-6.1" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.333 11.972c.034-.16.057-.323.067-.486 0-4.478-3.732-8-8.268-8-1.502 0-2.914.41-4.167 1.125M3 3l18 18" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              )}
             </span>
           </div>
 

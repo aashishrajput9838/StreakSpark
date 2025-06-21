@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
@@ -14,6 +14,17 @@ const LoginPage: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Successfully logged in!");
+      navigate('/index'); // Redirect to main landing page after successful login
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      alert("Successfully signed in with Google!");
       navigate('/index'); // Redirect to main landing page after successful login
     } catch (error: any) {
       alert(error.message);
@@ -101,7 +112,10 @@ const LoginPage: React.FC = () => {
 
         {/* Social Login Buttons */}
         <div className="flex justify-center space-x-4 w-full">
-          <button className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300">
+          <button 
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
+            onClick={handleGoogleSignIn}
+          >
             <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google" className="w-6 h-6" />
           </button>
           <button className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300">

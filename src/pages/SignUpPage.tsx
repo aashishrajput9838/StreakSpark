@@ -4,7 +4,9 @@ import {
   createUserWithEmailAndPassword, 
   GoogleAuthProvider, 
   signInWithPopup, 
-  FacebookAuthProvider 
+  FacebookAuthProvider,
+  updateProfile,
+  AuthProvider
 } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -30,23 +32,18 @@ const SignUpPage: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
+  const handleSocialSignIn = async (provider: AuthProvider) => {
     try {
-      await signInWithPopup(auth, provider);
-      alert("Successfully signed up with Google!");
-      navigate('/index'); // Redirect to main landing page
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-  const handleFacebookSignIn = async () => {
-    const provider = new FacebookAuthProvider();
-    provider.addScope('email');
-    try {
-      await signInWithPopup(auth, provider);
-      alert("Successfully signed up with Facebook!");
+      if (user) {
+        const displayName = user.displayName;
+        const photoURL = user.photoURL;
+        await updateProfile(user, { displayName, photoURL });
+      }
+      
+      alert(`Successfully signed up with ${provider.providerId.replace('.com', '')}!`);
       navigate('/index');
     } catch (error: any) {
       alert(error.message);
@@ -150,13 +147,17 @@ const SignUpPage: React.FC = () => {
         <div className="flex justify-center space-x-4 w-full">
           <button 
             className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
-            onClick={handleGoogleSignIn}
+            onClick={() => handleSocialSignIn(new GoogleAuthProvider())}
           >
             <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google" className="w-6 h-6" />
           </button>
           <button 
             className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
-            onClick={handleFacebookSignIn}
+            onClick={() => {
+              const provider = new FacebookAuthProvider();
+              provider.addScope('email');
+              handleSocialSignIn(provider);
+            }}
           >
             <img src="https://img.icons8.com/color/48/000000/facebook-new.png" alt="Facebook" className="w-6 h-6" />
           </button>

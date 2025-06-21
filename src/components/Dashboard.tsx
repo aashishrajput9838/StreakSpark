@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X } from 'lucide-react';
+import { motion, Variants, Transition } from 'framer-motion';
+import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuthContext } from '@/contexts/AuthContext';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -15,19 +16,20 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 100,
     },
   },
 };
 
 const Dashboard = () => {
+  const { user } = useAuthContext();
   const [currentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(30);
   const [editingTodo, setEditingTodo] = useState<number | null>(null);
@@ -173,6 +175,42 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <motion.div variants={itemVariants} className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-slate-100">
+              Good morning, <span className="text-purple-400">{user?.displayName?.split(' ')[0] || 'Guest'}</span>
+            </h1>
+            <motion.span 
+              className="text-4xl"
+              initial={{ rotate: 0 }}
+              animate={{ rotate: [0, 20, -10, 20, 0] }}
+              transition={{ duration: 1, ease: "easeInOut", delay: 0.5 }}
+            >
+              👋
+            </motion.span>
+          </motion.div>
+          <motion.div variants={itemVariants} className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-full transition-all duration-300 hover:scale-110 hover:rotate-12">
+              <Search className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-full transition-all duration-300 hover:scale-110">
+              <Calendar className="w-5 h-5" />
+            </Button>
+            {user && user.photoURL ? (
+              <img 
+                src={user.photoURL} 
+                alt="User Profile" 
+                className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
+                <User className="w-6 h-6 text-white" />
+              </div>
+            )}
+          </motion.div>
+        </div>
+
         <motion.div variants={containerVariants} className="grid grid-cols-12 gap-6">
           {/* Left Column */}
           <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">

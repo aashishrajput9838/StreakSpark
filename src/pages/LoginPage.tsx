@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, fetchSignInMethodsForEmail, updateProfile, AuthProvider } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
@@ -16,27 +16,40 @@ const LoginPage: React.FC = () => {
       alert("Successfully logged in!");
       navigate('/index'); // Redirect to main landing page after successful login
     } catch (error: any) {
-      alert(error.message);
+      if (error.code === 'auth/invalid-credential' && email) {
+        try {
+          const methods = await fetchSignInMethodsForEmail(auth, email);
+          if (methods.length === 0) {
+            alert("Error: No account found with this email address. Please check the email or sign up.");
+          } else if (methods.includes('google.com')) {
+            alert("You originally signed in with Google. Please use the Google sign-in button to log in.");
+          } else if (methods.includes('facebook.com')) {
+            alert("You originally signed in with Facebook. Please use the Facebook sign-in button to log in.");
+          } else {
+            alert("Error: Incorrect password. Please try again.");
+          }
+        } catch (fetchError) {
+          alert(error.message); // Fallback to original error if fetch fails
+        }
+      } else {
+        alert(error.message);
+      }
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
+  const handleSocialSignIn = async (provider: AuthProvider) => {
     try {
-      await signInWithPopup(auth, provider);
-      alert("Successfully signed in with Google!");
-      navigate('/index'); // Redirect to main landing page after successful login
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-  const handleFacebookSignIn = async () => {
-    const provider = new FacebookAuthProvider();
-    provider.addScope('email');
-    try {
-      await signInWithPopup(auth, provider);
-      alert("Successfully signed in with Facebook!");
+      // Ensure the profile is updated with the latest info from the provider
+      if (user) {
+        const displayName = user.displayName;
+        const photoURL = user.photoURL;
+        await updateProfile(user, { displayName, photoURL });
+      }
+      
+      alert(`Successfully signed in with ${provider.providerId.replace('.com', '')}!`);
       navigate('/index');
     } catch (error: any) {
       alert(error.message);
@@ -126,13 +139,17 @@ const LoginPage: React.FC = () => {
         <div className="flex justify-center space-x-4 w-full">
           <button 
             className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
-            onClick={handleGoogleSignIn}
+            onClick={() => handleSocialSignIn(new GoogleAuthProvider())}
           >
             <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google" className="w-6 h-6" />
           </button>
           <button 
             className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
-            onClick={handleFacebookSignIn}
+            onClick={() => {
+              const provider = new FacebookAuthProvider();
+              provider.addScope('email');
+              handleSocialSignIn(provider);
+            }}
           >
             <img src="https://img.icons8.com/color/48/000000/facebook-new.png" alt="Facebook" className="w-6 h-6" />
           </button>

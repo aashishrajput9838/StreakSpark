@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { 
+  createUserWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  FacebookAuthProvider 
+} from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -19,6 +25,29 @@ const SignUpPage: React.FC = () => {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("Successfully signed up!");
       navigate('/login'); // Redirect to login page after successful signup
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      alert("Successfully signed up with Google!");
+      navigate('/index'); // Redirect to main landing page
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    const provider = new FacebookAuthProvider();
+    provider.addScope('email');
+    try {
+      await signInWithPopup(auth, provider);
+      alert("Successfully signed up with Facebook!");
+      navigate('/index');
     } catch (error: any) {
       alert(error.message);
     }
@@ -56,7 +85,7 @@ const SignUpPage: React.FC = () => {
           {/* Password Input */}
           <div className="relative">
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               className="w-full px-4 py-3 pl-10 rounded-xl bg-appPalette-dark-background border border-appPalette-dark-border focus:outline-none focus:ring-2 focus:ring-appPalette-pink text-appPalette-dark-text placeholder-appPalette-dark-muted"
               value={password}
@@ -66,15 +95,22 @@ const SignUpPage: React.FC = () => {
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-2-6h4m4 0h-4m-4 0V9m-6 3h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z"></path></svg>
             </span>
-            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted cursor-pointer">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            <span 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-appPalette-dark-muted cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .95-3.112 3.543-5.45 6.848-6.1" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.333 11.972c.034-.16.057-.323.067-.486 0-4.478-3.732-8-8.268-8-1.502 0-2.914.41-4.167 1.125M3 3l18 18" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              )}
             </span>
           </div>
 
           {/* Confirm Password Input */}
           <div className="relative">
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Confirm Password"
               className="w-full px-4 py-3 pl-10 rounded-xl bg-appPalette-dark-background border border-appPalette-dark-border focus:outline-none focus:ring-2 focus:ring-appPalette-pink text-appPalette-dark-text placeholder-appPalette-dark-muted"
               value={confirmPassword}
@@ -112,10 +148,16 @@ const SignUpPage: React.FC = () => {
 
         {/* Social Login Buttons */}
         <div className="flex justify-center space-x-4 w-full">
-          <button className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300">
+          <button 
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
+            onClick={handleGoogleSignIn}
+          >
             <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google" className="w-6 h-6" />
           </button>
-          <button className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300">
+          <button 
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300"
+            onClick={handleFacebookSignIn}
+          >
             <img src="https://img.icons8.com/color/48/000000/facebook-new.png" alt="Facebook" className="w-6 h-6" />
           </button>
           <button className="flex items-center justify-center w-12 h-12 rounded-full bg-appPalette-dark-background border border-appPalette-dark-border shadow-sm hover:bg-appPalette-dark-card transition duration-300">

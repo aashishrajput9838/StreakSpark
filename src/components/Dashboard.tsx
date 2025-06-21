@@ -1,8 +1,31 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 100,
+    },
+  },
+};
 
 const Dashboard = () => {
   const [currentDate] = useState(new Date());
@@ -136,44 +159,25 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 relative overflow-hidden">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 relative overflow-hidden text-white"
+    >
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-orange-500/5 to-pink-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-10">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400 to-fuchsia-400 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-400 to-sky-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-fuchsia-400 to-pink-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 animate-fade-in">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-300 hover:scale-105">
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">Dashboard</h1>
-            <span className="text-slate-600">/</span>
-            <span className="text-slate-500">Schedule</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-300 hover:scale-110 hover:rotate-12">
-              <Search className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-300 hover:scale-110">
-              <Calendar className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-300 hover:scale-110">
-              <TrendingUp className="w-4 h-4" />
-            </Button>
-            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-orange-500/25"></div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 gap-6">
+        <motion.div variants={containerVariants} className="grid grid-cols-12 gap-6">
           {/* Left Column */}
-          <div className="col-span-3 space-y-6">
+          <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">
             {/* Greeting Card */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/10 animate-fade-in group">
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-purple-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10 group">
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Happy</h2>
               </div>
@@ -182,28 +186,28 @@ const Dashboard = () => {
                 <span className="text-2xl animate-bounce">👋</span>
               </div>
               <p className="text-sm text-slate-400 mb-6">30 Dec 2023, 10:03 am</p>
-              <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-full border-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25 group-hover:animate-pulse">
+              <Button className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white rounded-full border-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 group-hover:animate-pulse">
                 <Plus className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-90" />
                 New Habits
               </Button>
               <div className="mt-4 text-center">
-                <button className="text-sm text-slate-400 hover:text-orange-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-orange-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
+                <button className="text-sm text-slate-400 hover:text-purple-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-purple-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">
                   Browse Popular Habits
                 </button>
               </div>
             </Card>
 
             {/* Calendar */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-sky-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/10">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-slate-100">December, 2023</h3>
-                <Button variant="ghost" size="sm" className="bg-orange-900/30 text-orange-400 rounded-full hover:bg-orange-900/50 transition-all duration-300 hover:scale-110 hover:rotate-12">
+                <Button variant="ghost" size="sm" className="bg-sky-900/30 text-sky-400 rounded-full hover:bg-sky-900/50 transition-all duration-300 hover:scale-110 hover:rotate-12">
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
               <div className="grid grid-cols-7 gap-1 mb-4">
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                  <div key={i} className="text-xs text-slate-500 text-center p-2 transition-colors duration-300 hover:text-orange-400">{day}</div>
+                  <div key={i} className="text-xs text-slate-500 text-center p-2 transition-colors duration-300 hover:text-sky-400">{day}</div>
                 ))}
               </div>
               <div className="space-y-1">
@@ -216,10 +220,10 @@ const Dashboard = () => {
                         className={`
                           text-sm p-2 rounded-lg text-center transition-all duration-300 hover:scale-110 hover:shadow-lg
                           ${day === selectedDate 
-                            ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/25 scale-110' 
+                            ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-lg shadow-sky-500/25 scale-110' 
                             : 'text-slate-300 hover:bg-slate-800/50'
                           }
-                          ${day === 22 ? 'border border-orange-500 animate-pulse' : ''}
+                          ${day === 22 ? 'border border-sky-500 animate-pulse' : ''}
                         `}
                       >
                         {day}
@@ -232,19 +236,19 @@ const Dashboard = () => {
                 +3.2% from last month
               </div>
             </Card>
-          </div>
+          </motion.div>
 
           {/* Center Column */}
-          <div className="col-span-6 space-y-6">
+          <motion.div variants={itemVariants} className="col-span-12 lg:col-span-6 space-y-6">
             {/* Weather and Today's Todos */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Weather Widget */}
-              <Card className="p-6 bg-gradient-to-br from-amber-600 via-orange-600 to-pink-600 border-0 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/25 animate-fade-in group" style={{ animationDelay: '0.2s' }}>
+              <Card className="p-6 bg-gradient-to-br from-blue-600 via-sky-600 to-cyan-600 border-0 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/25 group">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-white">Weather</h3>
                   <button 
                     onClick={updateWeather}
-                    className="text-sm text-orange-100 hover:text-white transition-all duration-300 hover:scale-110 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-white after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+                    className="text-sm text-sky-100 hover:text-white transition-all duration-300 hover:scale-110 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-white after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                   >
                     Update
                   </button>
@@ -257,22 +261,22 @@ const Dashboard = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-orange-100">Wind</div>
+                    <div className="text-sky-100">Wind</div>
                     <div className="font-medium text-white">{weatherData.wind}</div>
                   </div>
                   <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-orange-100">Pressure</div>
+                    <div className="text-sky-100">Pressure</div>
                     <div className="font-medium text-white">{weatherData.pressure}</div>
                   </div>
                   <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-orange-100">Humidity</div>
+                    <div className="text-sky-100">Humidity</div>
                     <div className="font-medium text-white">{weatherData.humidity}</div>
                   </div>
                 </div>
               </Card>
 
               {/* Today's Todos */}
-              <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-blue-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-slate-100">Today's Todos</h3>
                   <div className="flex gap-2">
@@ -280,17 +284,17 @@ const Dashboard = () => {
                       placeholder="Add todo..."
                       value={newTodoText}
                       onChange={(e) => setNewTodoText(e.target.value)}
-                      className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-orange-500/10"
+                      className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-blue-500/10"
                       onKeyPress={(e) => e.key === 'Enter' && addTodo()}
                     />
-                    <Button size="sm" onClick={addTodo} className="h-8 w-8 p-0 bg-gradient-to-r from-orange-500 to-pink-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/25">
+                    <Button size="sm" onClick={addTodo} className="h-8 w-8 p-0 bg-gradient-to-r from-blue-500 to-sky-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/25">
                       <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-3 max-h-48 overflow-y-auto">
                   {todos.map((todo, index) => (
-                    <div key={todo.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2 animate-fade-in" style={{ animationDelay: `${0.1 * index}s` }}>
+                    <motion.div variants={itemVariants} key={todo.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
                       <div className="text-lg transition-all duration-300 group-hover:scale-125">{todo.icon}</div>
                       <div className="flex-1">
                         {editingTodo === todo.id ? (
@@ -310,13 +314,13 @@ const Dashboard = () => {
                           </div>
                         ) : (
                           <>
-                            <div className={`font-medium text-sm transition-all duration-300 ${todo.completed ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-orange-300'}`}>
+                            <div className={`font-medium text-sm transition-all duration-300 ${todo.completed ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-blue-300'}`}>
                               {todo.title}
                             </div>
                             <div className="flex items-center gap-2 text-xs text-slate-400">
-                              <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-orange-400" />
+                              <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
                               <span>{todo.time}</span>
-                              <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-orange-400" />
+                              <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
                               <span>{todo.location}</span>
                             </div>
                           </>
@@ -351,40 +355,40 @@ const Dashboard = () => {
                       >
                         {todo.completed && <span className="text-white text-xs animate-bounce">✓</span>}
                       </button>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </Card>
             </div>
 
             {/* Should Do Section */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-pink-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-pink-500/10">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-slate-100">Should Do!</h3>
-                <button className="text-sm text-slate-400 hover:text-purple-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-purple-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
+                <button className="text-sm text-slate-400 hover:text-pink-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-pink-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
               </div>
               <div className="space-y-4">
                 {shouldDoItems.map((item, index) => (
-                  <div key={item.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-3 animate-fade-in" style={{ animationDelay: `${0.1 * index}s` }}>
+                  <motion.div variants={itemVariants} key={item.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-3">
                     <span className="text-2xl transition-all duration-300 group-hover:scale-125">{item.icon}</span>
                     <div className="flex-1">
-                      <div className="font-medium text-slate-200 transition-all duration-300 group-hover:text-purple-300">{item.title}</div>
+                      <div className="font-medium text-slate-200 transition-all duration-300 group-hover:text-pink-300">{item.title}</div>
                       <div className="text-sm text-slate-400">👍 {item.likes.toLocaleString()} love this</div>
                     </div>
                     <Button
                       size="sm"
                       onClick={() => likeShouldDoItem(item.id)}
-                      className="bg-slate-800/50 hover:bg-purple-700 text-slate-200 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25"
+                      className="bg-slate-800/50 hover:bg-pink-700 text-slate-200 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-pink-500/25"
                     >
                       👍 Like
                     </Button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </Card>
 
             {/* Running Competition */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-blue-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10">
               <h3 className="font-semibold text-slate-100 mb-4">Running Competition</h3>
               <div className="flex items-center gap-4 mb-4">
                 <Calendar className="w-4 h-4 text-slate-400 transition-all duration-300 hover:text-blue-400" />
@@ -395,7 +399,7 @@ const Dashboard = () => {
               </div>
               <div className="relative group">
                 <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 rounded-lg p-6 h-32 border border-slate-800/50 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-blue-500/10">
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
                     <span className="text-white text-sm">🏃</span>
                   </div>
                   <div className="absolute bottom-4 left-4">
@@ -407,12 +411,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </Card>
-          </div>
+          </motion.div>
 
           {/* Right Column */}
-          <div className="col-span-3 space-y-6">
+          <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">
             {/* Connect Spotify */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10 animate-fade-in group" style={{ animationDelay: '0.6s' }}>
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-emerald-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10 group">
               <div className="text-center mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-green-600 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg shadow-emerald-500/25">
                   <Music className="w-6 h-6 text-white" />
@@ -428,7 +432,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Analytics */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900/90 to-slate-800/90 border-slate-700/50 backdrop-blur-sm transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-violet-500/10 animate-fade-in" style={{ animationDelay: '0.7s' }}>
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-violet-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-violet-500/10">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-slate-100">Analytics</h3>
                 <button className="text-sm text-slate-400 hover:text-violet-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-violet-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
@@ -470,14 +474,14 @@ const Dashboard = () => {
                       className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-violet-500/10"
                       onKeyPress={(e) => e.key === 'Enter' && addHabit()}
                     />
-                    <Button size="sm" onClick={addHabit} className="h-8 w-8 p-0 bg-gradient-to-r from-orange-500 to-pink-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/25">
+                    <Button size="sm" onClick={addHabit} className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25">
                       <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {favoriteHabits.map((habit, index) => (
-                    <div key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2 animate-fade-in" style={{ animationDelay: `${0.1 * index}s` }}>
+                    <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
                       <div className={`w-8 h-8 ${habit.color} rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
                         {habit.name.slice(0, 2)}
                       </div>
@@ -545,15 +549,15 @@ const Dashboard = () => {
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
             </Card>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

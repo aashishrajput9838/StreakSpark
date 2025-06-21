@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { auth } from "../firebaseConfig"
-import { onAuthStateChanged, signOut } from "firebase/auth"
+import { useState } from "react"
+import { motion, AnimatePresence, Variants } from "framer-motion"
 import { Link, useNavigate, useLocation } from "react-router-dom"
+import { useAuthContext } from "@/contexts/AuthContext"
 import {
   Menu,
   X,
@@ -16,28 +15,21 @@ import {
   Info,
   Mail,
   BarChart3,
+  LogIn,
+  UserPlus,
 } from "lucide-react"
 
 const AnimatedNavbar: React.FC = () => {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, logout, loading } = useAuthContext()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser)
-      setIsLoading(false)
-    })
-    return () => unsubscribe()
-  }, [])
-
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true)
-      await signOut(auth)
+      await logout()
       navigate("/login")
     } catch (error: any) {
       console.error(error.message)
@@ -53,9 +45,14 @@ const AnimatedNavbar: React.FC = () => {
     { path: "/contact", label: "Contact", icon: Mail },
   ]
 
+  const authNavItems = [
+    { path: "/login", label: "Login", icon: LogIn },
+    { path: "/signup", label: "Sign Up", icon: UserPlus },
+  ]
+
   const isActivePath = (path: string) => location.pathname === path
 
-  const navbarVariants = {
+  const navbarVariants: Variants = {
     hidden: { y: -100, opacity: 0 },
     visible: {
       y: 0,
@@ -68,7 +65,7 @@ const AnimatedNavbar: React.FC = () => {
     },
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: -20 },
     visible: {
       opacity: 1,
@@ -77,7 +74,7 @@ const AnimatedNavbar: React.FC = () => {
     },
   }
 
-  const mobileMenuVariants = {
+  const mobileMenuVariants: Variants = {
     hidden: { opacity: 0, scale: 0.95, y: -20 },
     visible: {
       opacity: 1,
@@ -97,7 +94,7 @@ const AnimatedNavbar: React.FC = () => {
     },
   }
 
-  const mobileItemVariants = {
+  const mobileItemVariants: Variants = {
     hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
@@ -107,7 +104,7 @@ const AnimatedNavbar: React.FC = () => {
   }
 
   // Enhanced button animation variants
-  const buttonVariants = {
+  const buttonVariants: Variants = {
     idle: { scale: 1, y: 0 },
     hover: { 
       scale: 1.05, 
@@ -127,7 +124,7 @@ const AnimatedNavbar: React.FC = () => {
     }
   }
 
-  const iconVariants = {
+  const iconVariants: Variants = {
     idle: { rotate: 0, scale: 1 },
     hover: { 
       rotate: 5, 
@@ -147,7 +144,7 @@ const AnimatedNavbar: React.FC = () => {
     }
   }
 
-  const navButtonVariants = {
+  const navButtonVariants: Variants = {
     idle: { scale: 1, x: 0 },
     hover: { 
       scale: 1.02, 
@@ -167,7 +164,7 @@ const AnimatedNavbar: React.FC = () => {
     }
   }
 
-  const logoutButtonVariants = {
+  const logoutButtonVariants: Variants = {
     idle: { scale: 1, rotate: 0 },
     hover: { 
       scale: 1.05, 
@@ -187,7 +184,7 @@ const AnimatedNavbar: React.FC = () => {
     }
   }
 
-  const mobileButtonVariants = {
+  const mobileButtonVariants: Variants = {
     idle: { scale: 1, x: 0 },
     hover: { 
       scale: 1.02, 
@@ -245,114 +242,72 @@ const AnimatedNavbar: React.FC = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-2">
-              {navItems.map((item) => (
-                <motion.div key={item.path} variants={itemVariants}>
-                  <motion.div
-                    variants={navButtonVariants}
-                    initial="idle"
-                    whileHover="hover"
-                    whileTap="tap"
-                  >
-                    <Link
-                      to={item.path}
-                      className={`relative flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
-                        isActivePath(item.path)
-                          ? "bg-gradient-to-r from-purple-500/50 to-pink-500/50 text-white border border-purple-400/70 shadow-lg"
-                          : "text-white hover:text-white hover:bg-gray-700/50 border border-transparent hover:border-gray-600/50"
-                      }`}
-                    >
+              {user ? (
+                <>
+                  {navItems.map((item) => (
+                    <motion.div key={item.path} variants={itemVariants}>
                       <motion.div
-                        variants={iconVariants}
+                        variants={navButtonVariants}
                         initial="idle"
                         whileHover="hover"
                         whileTap="tap"
                       >
-                        <item.icon className="w-4 h-4" />
+                        <Link
+                          to={item.path}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 border ${
+                            isActivePath(item.path)
+                              ? "bg-purple-500/20 text-purple-300 shadow-inner border-purple-500/50"
+                              : "border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-purple-400"
+                          }`}
+                        >
+                          <item.icon className={`w-4 h-4 transition-transform duration-300 ${isActivePath(item.path) ? 'rotate-6' : ''}`} />
+                          <span className="text-sm font-medium">{item.label}</span>
+                        </Link>
                       </motion.div>
-                      <span className="text-sm">{item.label}</span>
-                      {isActivePath(item.path) && (
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg -z-10"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        />
-                      )}
-                    </Link>
-                  </motion.div>
-                </motion.div>
-              ))}
-
-              {/* User Section */}
-              {!isLoading && user && (
-                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-600/50">
-                  {/* User Info */}
-                  <motion.div 
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 rounded-lg border border-gray-600/50 backdrop-blur-sm"
-                    whileHover={{ scale: 1.02, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  >
-                    <motion.div 
-                      className="w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                      whileHover={{ rotate: 5, scale: 1.1 }}
-                      whileTap={{ rotate: -5, scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
-                      <User className="w-3 h-3 text-white" />
                     </motion.div>
-                    <span className="text-sm text-gray-200 hidden lg:block max-w-24 truncate">
-                      {user.displayName || user.email?.split("@")[0]}
-                    </span>
-                  </motion.div>
-
-                  {/* Logout Button */}
-                  <motion.button
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-200 hover:text-white rounded-lg border border-red-500/50 hover:border-red-400/70 transition-all duration-300 disabled:opacity-50 font-medium shadow-lg"
-                    variants={logoutButtonVariants}
-                    initial="idle"
-                    whileHover="hover"
-                    whileTap="tap"
-                  >
-                    <motion.div
-                      animate={isLoggingOut ? { rotate: 360 } : { rotate: 0 }}
-                      transition={isLoggingOut ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.2 }}
-                    >
-                      {isLoggingOut ? (
-                        <div className="w-4 h-4 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <LogOut className="w-4 h-4" />
-                      )}
-                    </motion.div>
-                    <span className="text-sm">Logout</span>
-                  </motion.button>
-                </div>
-              )}
-
-              {!isLoading && !user && (
-                <motion.div
-                  variants={buttonVariants}
-                  initial="idle"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  <Link
-                    to="/login"
-                    className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl border border-purple-400/30"
-                  >
-                    <motion.div
-                      variants={iconVariants}
+                  ))}
+                  <motion.div variants={itemVariants}>
+                    <motion.button
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all duration-300 disabled:opacity-50"
+                      variants={logoutButtonVariants}
                       initial="idle"
                       whileHover="hover"
                       whileTap="tap"
                     >
-                      <User className="w-4 h-4" />
-                    </motion.div>
-                    <span className="text-sm">Login</span>
-                  </Link>
-                </motion.div>
+                      {isLoggingOut ? "Logging out..." : "Logout"}
+                      <LogOut className="w-4 h-4" />
+                    </motion.button>
+                  </motion.div>
+                </>
+              ) : (
+                !loading && (
+                  <>
+                    {authNavItems.map((item) => (
+                      <motion.div key={item.path} variants={itemVariants}>
+                        <motion.div
+                          variants={navButtonVariants}
+                          initial="idle"
+                          whileHover="hover"
+                          whileTap="tap"
+                        >
+                          <Link
+                            to={item.path}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 border ${
+                              isActivePath(item.path)
+                                ? "bg-purple-500/20 text-purple-300 shadow-inner border-purple-500/50"
+                                : "border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-purple-400"
+                            }`}
+                          >
+                            <item.icon className="w-4 h-4" />
+                            <span className="text-sm font-medium">{item.label}</span>
+                          </Link>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </>
+                )
               )}
             </div>
 
@@ -412,110 +367,86 @@ const AnimatedNavbar: React.FC = () => {
               className="fixed top-20 left-4 right-4 bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 z-50 md:hidden overflow-hidden shadow-2xl"
             >
               <div className="p-6 space-y-4">
-                {navItems.map((item) => (
-                  <motion.div key={item.path} variants={mobileItemVariants}>
-                    <motion.div
-                      variants={mobileButtonVariants}
-                      initial="idle"
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
-                      <Link
-                        to={item.path}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-medium ${
-                          isActivePath(item.path)
-                            ? "bg-gradient-to-r from-purple-500/50 to-pink-500/50 text-white border border-purple-400/70"
-                            : "text-white hover:text-white hover:bg-gray-700/50 border border-transparent hover:border-gray-600/50"
-                        }`}
-                      >
+                {user ? (
+                  <>
+                    {navItems.map((item) => (
+                      <motion.div key={item.path} variants={mobileItemVariants}>
                         <motion.div
-                          whileHover={{ rotate: 5, scale: 1.1 }}
-                          whileTap={{ rotate: -5, scale: 0.95 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                          variants={mobileButtonVariants}
+                          initial="idle"
+                          whileHover="hover"
+                          whileTap="tap"
                         >
-                          <item.icon className="w-5 h-5" />
+                          <Link
+                            to={item.path}
+                            className={`flex items-center gap-4 p-4 rounded-xl text-lg transition-all duration-300 border ${
+                              isActivePath(item.path)
+                                ? "bg-purple-500/30 text-white border-purple-500/80"
+                                : "border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-gray-600"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <item.icon className="w-6 h-6" />
+                            {item.label}
+                          </Link>
                         </motion.div>
-                        <span>{item.label}</span>
-                      </Link>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {!isLoading && user && (
-                  <motion.div variants={mobileItemVariants} className="pt-4 border-t border-gray-600/50">
-                    <motion.div 
-                      className="flex items-center gap-3 px-4 py-3 bg-gray-800/50 rounded-xl border border-gray-600/50 mb-4"
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
-                      <motion.div 
-                        className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                        whileHover={{ rotate: 5, scale: 1.05 }}
-                        whileTap={{ rotate: -5, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                      >
-                        <User className="w-5 h-5 text-white" />
                       </motion.div>
-                      <div>
-                        <div className="text-white font-medium">
-                          {user.displayName || user.email?.split("@")[0]}
-                        </div>
-                        <div className="text-xs text-gray-400">{user.email}</div>
-                      </div>
-                    </motion.div>
-
-                    <motion.button
-                      onClick={() => {
-                        handleLogout()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      disabled={isLoggingOut}
-                      className="w-full flex items-center gap-3 px-4 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-200 hover:text-white rounded-xl border border-red-500/50 hover:border-red-400/70 transition-all duration-300 disabled:opacity-50 font-medium"
-                      variants={mobileButtonVariants}
-                      initial="idle"
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
-                      <motion.div
-                        animate={isLoggingOut ? { rotate: 360 } : { rotate: 0 }}
-                        transition={isLoggingOut ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.2 }}
+                    ))}
+                    <motion.div variants={mobileItemVariants}>
+                      <motion.button
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl text-lg text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all duration-300 disabled:opacity-50"
+                        variants={mobileButtonVariants}
+                        initial="idle"
+                        whileHover="hover"
+                        whileTap="tap"
                       >
-                        {isLoggingOut ? (
-                          <div className="w-5 h-5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <LogOut className="w-5 h-5" />
-                        )}
-                      </motion.div>
-                      <span>Logout</span>
-                    </motion.button>
-                  </motion.div>
+                        <LogOut className="w-6 h-6" />
+                        {isLoggingOut ? "Logging out..." : "Logout"}
+                      </motion.button>
+                    </motion.div>
+                  </>
+                ) : (
+                  !loading && (
+                    <>
+                      {authNavItems.map((item) => (
+                        <motion.div key={item.path} variants={mobileItemVariants}>
+                          <motion.div
+                            variants={mobileButtonVariants}
+                            initial="idle"
+                            whileHover="hover"
+                            whileTap="tap"
+                          >
+                            <Link
+                              to={item.path}
+                              className={`flex items-center gap-4 p-4 rounded-xl text-lg transition-all duration-300 border ${
+                                isActivePath(item.path)
+                                  ? "bg-purple-500/30 text-white border-purple-500/80"
+                                  : "border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-gray-600"
+                              }`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <item.icon className="w-6 h-6" />
+                              {item.label}
+                            </Link>
+                          </motion.div>
+                        </motion.div>
+                      ))}
+                    </>
+                  )
                 )}
 
-                {!isLoading && !user && (
-                  <motion.div variants={mobileItemVariants}>
-                    <motion.div
-                      variants={mobileButtonVariants}
-                      initial="idle"
-                      whileHover="hover"
-                      whileTap="tap"
-                    >
-                      <Link
-                        to="/login"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-medium transition-all duration-300 shadow-lg"
-                      >
-                        <motion.div
-                          whileHover={{ rotate: 5, scale: 1.1 }}
-                          whileTap={{ rotate: -5, scale: 0.95 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        >
-                          <User className="w-5 h-5" />
-                        </motion.div>
-                        Login
-                      </Link>
-                    </motion.div>
+                {user && (
+                  <motion.div
+                    variants={mobileItemVariants}
+                    className="flex items-center gap-3"
+                  >
+                    <User className="w-8 h-8 p-1.5 bg-gray-700 rounded-full" />
+                    <div>
+                      <div className="font-semibold">{user.displayName}</div>
+                      <div className="text-sm text-gray-400">{user.email}</div>
+                    </div>
                   </motion.div>
                 )}
               </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -30,12 +30,81 @@ const itemVariants: Variants = {
 
 const Dashboard = () => {
   const { user } = useAuthContext();
-  const [currentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(30);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [editingTodo, setEditingTodo] = useState<number | null>(null);
   const [newTodoText, setNewTodoText] = useState('');
   const [editingHabit, setEditingHabit] = useState<number | null>(null);
   const [newHabitText, setNewHabitText] = useState('');
+  const [weatherData, setWeatherData] = useState<{
+    temperature: number;
+    condition: string;
+    wind: string;
+    pressure: string;
+    humidity: string;
+    city: string;
+  } | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
+
+  const fetchWeather = () => {
+    setLoadingWeather(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,weather_code`);
+          const weatherApiData = await weatherResponse.json();
+
+          const geoResponse = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const geoData = await geoResponse.json();
+
+          setWeatherData({
+            temperature: Math.round(weatherApiData.current.temperature_2m),
+            condition: getWeatherIcon(weatherApiData.current.weather_code),
+            wind: `${weatherApiData.current.wind_speed_10m.toFixed(1)} km/h`,
+            pressure: `${Math.round(weatherApiData.current.pressure_msl)} hPa`,
+            humidity: `${weatherApiData.current.relative_humidity_2m}%`,
+            city: geoData.city || geoData.locality || 'Unknown Location'
+          });
+        } catch (error) {
+          console.error("Failed to fetch weather data", error);
+        } finally {
+          setLoadingWeather(false);
+        }
+      }, (error) => {
+        console.error("Error getting location", error);
+        setLoadingWeather(false);
+        alert("Could not get your location for weather updates. Please enable location services.");
+      });
+    } else {
+      setLoadingWeather(false);
+      alert("Geolocation is not supported by this browser.");
+    }
+  };
+  
+  const getWeatherIcon = (code: number) => {
+    if (code === 0) return '☀️'; // Clear sky
+    if (code >= 1 && code <= 3) return '⛅️'; // Mainly clear, partly cloudy, and overcast
+    if (code >= 45 && code <= 48) return '🌫️'; // Fog
+    if (code >= 51 && code <= 67) return '🌧️'; // Drizzle, Rain
+    if (code >= 71 && code <= 77) return '❄️'; // Snow
+    if (code >= 80 && code <= 82) return '🌦️'; // Rain showers
+    if (code >= 85 && code <= 86) return '🌨️'; // Snow showers
+    if (code >= 95 && code <= 99) return '⛈️'; // Thunderstorm
+    return '...';
+  };
+
+  useEffect(() => {
+    fetchWeather();
+    const timerId = setInterval(() => setCurrentDate(new Date()), 60000);
+    return () => clearInterval(timerId);
+  }, []);
+
+  const dayOfWeek = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+  const formattedTime = currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+  const formattedDate = `${currentDate.getDate()} ${currentDate.toLocaleString('en-US', { month: 'short' })} ${currentDate.getFullYear()}`;
+  const fullDateTime = `${formattedDate}, ${formattedTime}`;
+  const monthYear = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const [todos, setTodos] = useState([
     { id: 1, title: 'Study', time: '10:00am', location: 'K-Cafe', icon: '👨‍🎓', completed: false },
@@ -59,14 +128,6 @@ const Dashboard = () => {
     { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 2000 },
     { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
   ]);
-
-  const [weatherData, setWeatherData] = useState({
-    temperature: 12,
-    condition: '⛅',
-    wind: '2-4 km/h',
-    pressure: '102m',
-    humidity: '42%'
-  });
 
   const calendar = [
     [1, 2, 3, 4, 5, 6],
@@ -220,10 +281,17 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Happy</h2>
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Tuesday</h2>
-                <span className="text-2xl animate-bounce">👋</span>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">{dayOfWeek}</h2>
+                <motion.span 
+                  className="text-2xl"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, 15, -10, 15, 0] }}
+                  transition={{ duration: 1, ease: "easeInOut", delay: 0.5 }}
+                >
+                  👋
+                </motion.span>
               </div>
-              <p className="text-sm text-slate-400 mb-6">30 Dec 2023, 10:03 am</p>
+              <p className="text-sm text-slate-400 mb-6">{fullDateTime}</p>
               <Button className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white rounded-full border-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 group-hover:animate-pulse">
                 <Plus className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-90" />
                 New Habits
@@ -238,7 +306,7 @@ const Dashboard = () => {
             {/* Calendar */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-sky-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/10">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-100">December, 2023</h3>
+                <h3 className="font-semibold text-slate-100">{monthYear}</h3>
                 <Button variant="ghost" size="sm" className="bg-sky-900/30 text-sky-400 rounded-full hover:bg-sky-900/50 transition-all duration-300 hover:scale-110 hover:rotate-12">
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -280,38 +348,41 @@ const Dashboard = () => {
           <motion.div variants={itemVariants} className="col-span-12 lg:col-span-6 space-y-6">
             {/* Weather and Today's Todos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Weather Widget */}
-              <Card className="p-6 bg-gradient-to-br from-blue-600 via-sky-600 to-cyan-600 border-0 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/25 group">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-white">Weather</h3>
-                  <button 
-                    onClick={updateWeather}
-                    className="text-sm text-sky-100 hover:text-white transition-all duration-300 hover:scale-110 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-white after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                  >
-                    Update
-                  </button>
-                </div>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="text-center">
-                    <div className="text-5xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12">{weatherData.condition}</div>
-                    <div className="text-4xl font-bold text-white transition-all duration-300 group-hover:scale-110">{weatherData.temperature}°C</div>
+              {/* Weather Card */}
+              <motion.div variants={itemVariants}>
+                <Card className="p-6 bg-gradient-to-br from-blue-400/20 via-blue-500/20 to-cyan-400/20 border-sky-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/10">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-slate-100">{weatherData?.city || 'Weather'}</h3>
+                    <Button onClick={fetchWeather} variant="ghost" size="sm" className="text-sky-300 hover:bg-sky-900/50 hover:text-sky-200 transition-colors duration-300 rounded-full">
+                      {loadingWeather ? 'Updating...' : 'Update'}
+                    </Button>
                   </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-sky-100">Wind</div>
-                    <div className="font-medium text-white">{weatherData.wind}</div>
-                  </div>
-                  <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-sky-100">Pressure</div>
-                    <div className="font-medium text-white">{weatherData.pressure}</div>
-                  </div>
-                  <div className="transition-all duration-300 hover:scale-105">
-                    <div className="text-sky-100">Humidity</div>
-                    <div className="font-medium text-white">{weatherData.humidity}</div>
-                  </div>
-                </div>
-              </Card>
+                  {loadingWeather ? (
+                    <div className="text-center p-8 text-slate-400">Loading weather...</div>
+                  ) : weatherData ? (
+                    <div className="text-center">
+                      <div className="text-6xl mb-2">{weatherData.condition}</div>
+                      <div className="text-5xl font-bold mb-4">{weatherData.temperature}°C</div>
+                      <div className="flex justify-around text-sm text-slate-300">
+                        <div>
+                          <p className="text-slate-400 text-xs">Wind</p>
+                          <p>{weatherData.wind}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-xs">Pressure</p>
+                          <p>{weatherData.pressure}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-xs">Humidity</p>
+                          <p>{weatherData.humidity}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center p-8 text-slate-400">Could not load weather data.</div>
+                  )}
+                </Card>
+              </motion.div>
 
               {/* Today's Todos */}
               <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-blue-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10">

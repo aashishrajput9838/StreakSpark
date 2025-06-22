@@ -5,6 +5,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/contexts/AuthContext';
+import AddCompetitionModal from './dashboard/AddCompetitionModal';
+import { Competition } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -28,6 +40,8 @@ const itemVariants: Variants = {
   },
 };
 
+const adminUids = ['nL1uSGOcefbt22abnYDD04bn1Ta2']; 
+
 const Dashboard = () => {
   const { user } = useAuthContext();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -45,6 +59,10 @@ const Dashboard = () => {
     city: string;
   } | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
+  const [isAddCompetitionModalOpen, setIsAddCompetitionModalOpen] = useState(false);
+  const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -129,6 +147,10 @@ const Dashboard = () => {
     { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
   ]);
 
+  const [competitions, setCompetitions] = useState<Competition[]>([
+    { id: 1, name: 'Running Competition', date: '31 Dec', distance: '20miles', time: '09:00', startPoint: 'Starting Point' }
+  ]);
+
   const calendar = [
     [1, 2, 3, 4, 5, 6],
     [7, 8, 9, 10, 11, 12, 13],
@@ -205,6 +227,41 @@ const Dashboard = () => {
     }
   };
 
+  const handleAddCompetition = (newCompetitionData: Omit<Competition, 'id'>) => {
+    const newCompetition: Competition = {
+      id: competitions.length > 0 ? Math.max(...competitions.map(c => c.id)) + 1 : 1,
+      ...newCompetitionData
+    };
+    setCompetitions(prev => [...prev, newCompetition]);
+  };
+
+  const handleEditCompetition = (updatedCompetition: Competition) => {
+    setCompetitions(competitions.map(c => c.id === updatedCompetition.id ? updatedCompetition : c));
+  };
+
+  const handleDeleteCompetition = () => {
+    if (competitionToDelete !== null) {
+      setCompetitions(competitions.filter(c => c.id !== competitionToDelete));
+      setCompetitionToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const openDeleteConfirmation = (id: number) => {
+    setCompetitionToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const openEditCompetitionModal = (competition: Competition) => {
+    setCompetitionToEdit(competition);
+    setIsAddCompetitionModalOpen(true);
+  };
+
+  const openAddCompetitionModal = () => {
+    setCompetitionToEdit(null);
+    setIsAddCompetitionModalOpen(true);
+  };
+
   const updateWeather = () => {
     const temperatures = [8, 10, 12, 15, 18, 22];
     const conditions = ['⛅', '☀️', '🌧️', '❄️', '🌤️'];
@@ -228,6 +285,34 @@ const Dashboard = () => {
       variants={containerVariants}
       className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 relative overflow-hidden text-white"
     >
+      <AddCompetitionModal 
+        isOpen={isAddCompetitionModalOpen}
+        onClose={() => setIsAddCompetitionModalOpen(false)}
+        onAddCompetition={handleAddCompetition}
+        onEditCompetition={handleEditCompetition}
+        competitionToEdit={competitionToEdit}
+      />
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-900/80 backdrop-blur-sm border-red-500/30 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-400">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This action cannot be undone. This will permanently delete the competition
+              and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button onClick={handleDeleteCompetition} className="bg-red-600 hover:bg-red-700 text-white">
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-10">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400 to-fuchsia-400 rounded-full blur-3xl animate-pulse"></div>
@@ -496,28 +581,64 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Running Competition */}
-            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-blue-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/10">
-              <h3 className="font-semibold text-slate-100 mb-4">Running Competition</h3>
-              <div className="flex items-center gap-4 mb-4">
-                <Calendar className="w-4 h-4 text-slate-400 transition-all duration-300 hover:text-blue-400" />
-                <span className="text-sm text-slate-300">31 Dec</span>
-                <span className="text-sm text-slate-300">20miles</span>
-                <Clock className="w-4 h-4 text-slate-400 transition-all duration-300 hover:text-blue-400" />
-                <span className="text-sm text-slate-300">09:00</span>
+            {/* Nearby Competitions */}
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-purple-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-100">Nearby Competitions</h3>
+                {user && adminUids.includes(user.uid) && (
+                  <Button size="sm" onClick={openAddCompetitionModal} className="bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Competition
+                  </Button>
+                )}
               </div>
-              <div className="relative group">
-                <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 rounded-lg p-6 h-32 border border-slate-800/50 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-blue-500/10">
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
-                    <span className="text-white text-sm">🏃</span>
-                  </div>
-                  <div className="absolute bottom-4 left-4">
-                    <div className="bg-amber-500 rounded-full w-6 h-6 flex items-center justify-center transition-all duration-300 group-hover:scale-110 animate-pulse">
-                      <span className="text-white text-xs">⭐</span>
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                {competitions.map((competition) => (
+                  <motion.div variants={itemVariants} key={competition.id} className="relative group p-4 rounded-lg transition-all duration-300 hover:bg-slate-800/30">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-slate-200 mb-3 group-hover:text-purple-300 transition-colors duration-300">{competition.name}</h4>
+                        <div className="flex items-center gap-4 mb-4 text-sm text-slate-400">
+                          <div className="flex items-center gap-2 transition-all duration-300 group-hover:text-purple-400">
+                            <Calendar className="w-4 h-4" />
+                            <span>{competition.date}</span>
+                          </div>
+                          <div className="flex items-center gap-2 transition-all duration-300 group-hover:text-purple-400">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>{competition.distance}</span>
+                          </div>
+                          <div className="flex items-center gap-2 transition-all duration-300 group-hover:text-purple-400">
+                            <Clock className="w-4 h-4" />
+                            <span>{competition.time}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {user && adminUids.includes(user.uid) && (
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => openEditCompetitionModal(competition)} className="h-8 w-8 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110">
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" onClick={() => openDeleteConfirmation(competition.id)} className="h-8 w-8 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-slate-400 mt-1">Starting Point</div>
-                  </div>
-                </div>
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 rounded-lg p-6 h-32 border border-slate-800/50 transition-all duration-500 group-hover:shadow-xl group-hover:shadow-blue-500/10">
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                          <span className="text-white text-sm">🏃</span>
+                        </div>
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                          <div className="bg-amber-500 rounded-full w-6 h-6 flex items-center justify-center transition-all duration-300 group-hover:scale-110 animate-pulse">
+                            <span className="text-white text-xs">⭐</span>
+                          </div>
+                          <div className="text-xs text-slate-300 mt-1">{competition.startPoint}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </Card>
           </motion.div>

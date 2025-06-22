@@ -1,7 +1,33 @@
 import React from 'react';
 import { Github, Twitter, Linkedin, Mail, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const productLinks = [
+    { name: 'Features', path: '/features' },
+    { name: 'Analytics', path: '/analytics' },
+    { name: 'Goals', path: '/goals' },
+  ];
+
+  const companyLinks = [
+    { name: 'Blog', path: '/blog' },
+    { name: 'Careers', path: '/careers' },
+  ];
+
+  const supportLinks = [
+    { name: 'Help Center', path: '/help' },
+    { name: 'Privacy Policy', path: '/privacy' },
+    { name: 'Terms of Service', path: '/terms' },
+    { name: 'FAQ', path: '/faq' },
+  ];
+
+  const socialLinks = [
+    { icon: Github, label: 'GitHub', href: 'https://github.com/aashishrajput9838' },
+    { icon: Twitter, label: 'Twitter', href: 'https://x.com/aashish9838' },
+    { icon: Linkedin, label: 'LinkedIn', href: 'https://www.linkedin.com/in/aashishrajput9838/' },
+    { icon: Mail, label: 'Email', href: 'mailto:aashishrajput9838@gmail.com' }
+  ];
+
   return (
     <footer className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
       {/* Animated background elements */}
@@ -25,15 +51,12 @@ const Footer: React.FC = () => {
 
         {/* Social links */}
         <div className="flex justify-center space-x-6 mb-8">
-          {[
-            { icon: Github, label: 'GitHub' },
-            { icon: Twitter, label: 'Twitter' },
-            { icon: Linkedin, label: 'LinkedIn' },
-            { icon: Mail, label: 'Email' }
-          ].map(({ icon: Icon, label }, index) => (
+          {socialLinks.map(({ icon: Icon, label, href }, index) => (
             <a
               key={label}
-              href="#"
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group relative p-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-110 hover:bg-white/20 animate-fade-in"
               style={{ animationDelay: `${index * 100 + 150}ms` }}
               aria-label={label}
@@ -51,11 +74,11 @@ const Footer: React.FC = () => {
           <div className="animate-fade-in delay-300">
             <h3 className="text-lg font-semibold mb-4 text-blue-300">Product</h3>
             <ul className="space-y-2">
-              {['Features', 'Analytics', 'Habits', 'Goals'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
-                    {item}
-                  </a>
+              {productLinks.map((item) => (
+                <li key={item.name}>
+                  <Link to={item.path} className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -64,11 +87,11 @@ const Footer: React.FC = () => {
           <div className="animate-fade-in delay-500">
             <h3 className="text-lg font-semibold mb-4 text-purple-300">Company</h3>
             <ul className="space-y-2">
-              {['About Us', 'Blog', 'Careers', 'Contact'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
-                    {item}
-                  </a>
+              {companyLinks.map((item) => (
+                <li key={item.name}>
+                  <Link to={item.path} className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -77,11 +100,11 @@ const Footer: React.FC = () => {
           <div className="animate-fade-in delay-700">
             <h3 className="text-lg font-semibold mb-4 text-pink-300">Support</h3>
             <ul className="space-y-2">
-              {['Help Center', 'Privacy Policy', 'Terms of Service', 'FAQ'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
-                    {item}
-                  </a>
+              {supportLinks.map((item) => (
+                <li key={item.name}>
+                  <Link to={item.path} className="text-slate-400 hover:text-white transition-colors duration-300 hover:underline">
+                    {item.name}
+                  </Link>
                 </li>
               ))}
             </ul>

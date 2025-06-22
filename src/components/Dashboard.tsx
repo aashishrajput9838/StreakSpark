@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthContext } from '@/contexts/AuthContext';
 import AddCompetitionModal from './dashboard/AddCompetitionModal';
+import AddHabitModal from './dashboard/AddHabitModal';
 import { Competition } from '@/types';
 import {
   AlertDialog,
@@ -60,6 +61,7 @@ const Dashboard = () => {
   } | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [isAddCompetitionModalOpen, setIsAddCompetitionModalOpen] = useState(false);
+  const [isAddHabitModalOpen, setIsAddHabitModalOpen] = useState(false);
   const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
@@ -292,6 +294,10 @@ const Dashboard = () => {
         onEditCompetition={handleEditCompetition}
         competitionToEdit={competitionToEdit}
       />
+      <AddHabitModal 
+        open={isAddHabitModalOpen}
+        onClose={() => setIsAddHabitModalOpen(false)}
+      />
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-900/80 backdrop-blur-sm border-red-500/30 text-white">
           <AlertDialogHeader>
@@ -377,7 +383,7 @@ const Dashboard = () => {
                 </motion.span>
               </div>
               <p className="text-sm text-slate-400 mb-6">{fullDateTime}</p>
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white rounded-full border-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 group-hover:animate-pulse">
+              <Button onClick={() => setIsAddHabitModalOpen(true)} className="w-full bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white rounded-full border-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 group-hover:animate-pulse">
                 <Plus className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-90" />
                 New Habits
               </Button>

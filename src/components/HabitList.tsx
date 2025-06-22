@@ -18,7 +18,7 @@ export function HabitList() {
 
     try {
       await createHabit({
-        name: newHabitName.trim(),
+        title: newHabitName.trim(),
         frequency: newHabitFrequency,
       });
       setNewHabitName('');
@@ -95,10 +95,13 @@ export function HabitList() {
       <div className="space-y-4">
         {habits.map((habit) => (
           <Card key={habit.id}>
+            <CardHeader>
+              <CardTitle>{habit.title}</CardTitle>
+              <p className="text-sm text-gray-400">Streak: {habit.streak ?? 0}</p>
+            </CardHeader>
             <CardContent className="flex items-center justify-between p-4">
               <div className="space-y-1">
-                <h3 className="font-medium">{habit.name}</h3>
-                <p className="text-sm text-gray-500">Frequency: {habit.frequency}</p>
+                <p className="text-sm text-gray-400">Frequency: {habit.frequency}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <Button

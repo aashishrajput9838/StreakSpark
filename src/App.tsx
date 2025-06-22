@@ -20,6 +20,7 @@ import HelpCenterPage from "./pages/HelpCenterPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import FaqPage from "./pages/FaqPage";
+import IndexPage from "./pages/IndexPage";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -73,7 +74,7 @@ function App() {
                     path="/index"
                     element={
                       <ProtectedRoute>
-                        <Dashboard />
+                        <IndexPage />
                       </ProtectedRoute>
                     }
                   />

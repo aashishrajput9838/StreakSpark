@@ -1,85 +1,104 @@
 import React, { useState } from 'react';
+import { useHabits } from '@/hooks/useHabits';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface AddHabitModalProps {
   open: boolean;
   onClose: () => void;
-  onAddHabit: (habit: any) => void;
 }
 
-const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose, onAddHabit }) => {
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    category: '',
-    timeEstimate: '',
-    icon: '🎯',
-  });
+const AddHabitCardBackground = () => (
+    <div className="absolute inset-0 opacity-80 overflow-hidden rounded-xl">
+      <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-gradient-to-br from-purple-600 via-fuchsia-800 to-indigo-900 animate-[spin_10s_linear_infinite]"></div>
+    </div>
+  );
+
+const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose }) => {
+  const { createHabit } = useHabits();
+  const [newHabitName, setNewHabitName] = useState('');
+  const [newHabitDescription, setNewHabitDescription] = useState('');
+  const [newHabitFrequency, setNewHabitFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   if (!open) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCreateHabit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.description || !form.category || !form.timeEstimate) {
-      alert('Please fill in all fields');
-      return;
+    if (!newHabitName.trim()) return;
+
+    try {
+      await createHabit({
+        title: newHabitName.trim(),
+        description: newHabitDescription.trim(),
+        frequency: newHabitFrequency,
+      });
+      setNewHabitName('');
+      setNewHabitDescription('');
+      toast.success('Habit created successfully');
+      onClose();
+    } catch (error) {
+      toast.error('Failed to create habit');
     }
-    onAddHabit(form);
-    setForm({ title: '', description: '', category: '', timeEstimate: '', icon: '🎯' });
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
-        <h2 className="text-xl font-bold mb-4">Add New Habit</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input name="title" value={form.title} onChange={handleChange} className="w-full border rounded px-3 py-2" placeholder="Enter habit title" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} className="w-full border rounded px-3 py-2" placeholder="Describe your habit" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select name="category" value={form.category} onChange={handleChange} className="w-full border rounded px-3 py-2">
-              <option value="">Select category</option>
-              <option value="fitness">Fitness</option>
-              <option value="mindfulness">Mindfulness</option>
-              <option value="learning">Learning</option>
-              <option value="productivity">Productivity</option>
-              <option value="social">Social</option>
-              <option value="creativity">Creativity</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Time Estimate</label>
-            <select name="timeEstimate" value={form.timeEstimate} onChange={handleChange} className="w-full border rounded px-3 py-2">
-              <option value="">Select time estimate</option>
-              <option value="30 sec">30 seconds</option>
-              <option value="1 min">1 minute</option>
-              <option value="2 min">2 minutes</option>
-              <option value="3 min">3 minutes</option>
-              <option value="5 min">5 minutes</option>
-              <option value="10 min">10 minutes</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Icon</label>
-            <input name="icon" value={form.icon} onChange={handleChange} className="w-16 border rounded px-3 py-2 text-center text-2xl" maxLength={2} />
-          </div>
-          <button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white font-semibold rounded-lg px-4 py-2 transition">Add Habit</button>
-        </form>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={onClose}>
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <AddHabitCardBackground />
+            <div className="relative bg-slate-900/80 backdrop-blur-sm border-white/20 text-white rounded-xl shadow-lg p-8 w-full max-w-md">
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
+                <h2 className="text-2xl font-bold mb-2 text-fuchsia-400">Add New Habit</h2>
+                <p className="text-slate-300 mb-6">Create a new habit to track and build your streak.</p>
+                <form onSubmit={handleCreateHabit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="habitName" className="text-slate-300">Habit Name</Label>
+                    <Input
+                    id="habitName"
+                    value={newHabitName}
+                    onChange={(e) => setNewHabitName(e.target.value)}
+                    placeholder="e.g., Read for 20 minutes"
+                    required
+                    className="bg-slate-800/60 border-slate-700 text-white placeholder:text-slate-400 focus:ring-fuchsia-500"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="habitDescription" className="text-slate-300">Description (Optional)</Label>
+                    <Textarea
+                    id="habitDescription"
+                    value={newHabitDescription}
+                    onChange={(e) => setNewHabitDescription(e.target.value)}
+                    placeholder="e.g., To expand my knowledge"
+                    className="bg-slate-800/60 border-slate-700 text-white placeholder:text-slate-400 focus:ring-fuchsia-500"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="frequency" className="text-slate-300">Frequency</Label>
+                    <Select
+                    value={newHabitFrequency}
+                    onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setNewHabitFrequency(value)}
+                    >
+                    <SelectTrigger className="bg-slate-800/60 border-slate-700 text-white">
+                        <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                        <SelectItem value="daily" className="hover:bg-fuchsia-500">Daily</SelectItem>
+                        <SelectItem value="weekly" className="hover:bg-fuchsia-500">Weekly</SelectItem>
+                        <SelectItem value="monthly" className="hover:bg-fuchsia-500">Monthly</SelectItem>
+                    </SelectContent>
+                    </Select>
+                </div>
+                <Button type="submit" className="w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white font-bold shadow-lg transition-transform transform hover:scale-105">
+                    Spark New Habit
+                </Button>
+                </form>
+            </div>
+        </div>
     </div>
   );
 };
 
-export default AddHabitModal; 
+export default AddHabitModal;

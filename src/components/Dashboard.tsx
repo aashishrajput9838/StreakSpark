@@ -1,4 +1,3 @@
-import LoginWithSpotify from './LoginWithSpotify';
 import React, { useState, useEffect } from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User, Star } from 'lucide-react';
@@ -23,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { addTracksToPlaylist } from '@/lib/spotifyAPI';
 import { useToast } from "@/components/ui/use-toast";
+import LoginWithSpotify from './LoginWithSpotify';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -72,34 +72,9 @@ const Dashboard = () => {
   const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
-  const [spotifyStatus, setSpotifyStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const { toast } = useToast();
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
-
-  const handleAddMusicToPlaylist = async () => {
-    setSpotifyStatus('loading');
-    try {
-      // TODO: Replace with dynamic playlist ID and track URIs
-      const playlistId = '37i9dQZF1DXcBWIGoYBM5M'; // Example: Spotify's "Today's Top Hits"
-      const trackUris = ['spotify:track:4r6eNCK7Q1EzZG2zNcryyU']; // Example: "As It Was" by Harry Styles
-
-      await addTracksToPlaylist(playlistId, trackUris);
-      setSpotifyStatus('success');
-      toast({
-        title: "Success!",
-        description: "Track has been added to your playlist.",
-        variant: "default",
-      });
-    } catch (error) {
-      setSpotifyStatus('error');
-      toast({
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem adding the track to your playlist.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -664,28 +639,7 @@ const Dashboard = () => {
           <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">
             {/* Connect Spotify */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-emerald-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10 group">
-              <div className="text-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-green-600 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg shadow-emerald-500/25">
-                  <Music className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-slate-100 mb-2">Add Music to</h3>
-                <h3 className="font-semibold text-slate-100 mb-2">Your Playlist</h3>
-                <p className="text-sm text-slate-400 mb-4 transition-all duration-300 group-hover:text-slate-300">Keep your workout playlist fresh by adding new tracks directly from your dashboard.</p>
-                <Card className="p-6 bg-slate-900/50 ...">
-  <div className="text-center mb-4">
-    <div className="w-12 h-12 ...">
-      <Music className="w-6 h-6 text-white" />
-    </div>
-    <h3 className="font-semibold text-slate-100 mb-2">Connect your</h3>
-    <h3 className="font-semibold text-slate-100 mb-2">Spotify account</h3>
-    <p className="text-sm text-slate-400 mb-4 ...">
-      Empower yourself with habit tracking while enjoying uninterrupted music
-    </p>
-    {/* Replace the Button below with the LoginWithSpotify component */}
-    <LoginWithSpotify />
-  </div>
-</Card>
-              </div>
+              <LoginWithSpotify />
             </Card>
 
             {/* Virtual AI Coach */}

@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
+import { addTracksToPlaylist } from '@/lib/spotifyAPI';
+import { useToast } from "@/components/ui/use-toast";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -69,8 +71,34 @@ const Dashboard = () => {
   const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
+  const [spotifyStatus, setSpotifyStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const { toast } = useToast();
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
+
+  const handleAddMusicToPlaylist = async () => {
+    setSpotifyStatus('loading');
+    try {
+      // TODO: Replace with dynamic playlist ID and track URIs
+      const playlistId = '37i9dQZF1DXcBWIGoYBM5M'; // Example: Spotify's "Today's Top Hits"
+      const trackUris = ['spotify:track:4r6eNCK7Q1EzZG2zNcryyU']; // Example: "As It Was" by Harry Styles
+
+      await addTracksToPlaylist(playlistId, trackUris);
+      setSpotifyStatus('success');
+      toast({
+        title: "Success!",
+        description: "Track has been added to your playlist.",
+        variant: "default",
+      });
+    } catch (error) {
+      setSpotifyStatus('error');
+      toast({
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem adding the track to your playlist.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -639,106 +667,22 @@ const Dashboard = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-green-600 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg shadow-emerald-500/25">
                   <Music className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-slate-100 mb-2">Connect your</h3>
-                <h3 className="font-semibold text-slate-100 mb-2">Spotify account</h3>
-                <p className="text-sm text-slate-400 mb-4 transition-all duration-300 group-hover:text-slate-300">Empower yourself with habit tracking while enjoying uninterrupted music</p>
-                <Button className="w-full bg-slate-800/50 hover:bg-emerald-700 text-slate-100 rounded-lg border border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25">
+                <h3 className="font-semibold text-slate-100 mb-2">Add Music to</h3>
+                <h3 className="font-semibold text-slate-100 mb-2">Your Playlist</h3>
+                <p className="text-sm text-slate-400 mb-4 transition-all duration-300 group-hover:text-slate-300">Keep your workout playlist fresh by adding new tracks directly from your dashboard.</p>
+                <Button 
+                  onClick={handleAddMusicToPlaylist}
+                  disabled={spotifyStatus === 'loading'}
+                  className="w-full bg-slate-800/50 hover:bg-emerald-700 text-slate-100 rounded-lg border border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50"
+                >
                   <Music className="w-4 h-4 mr-2 transition-transform duration-300 hover:rotate-12" />
-                  Link Account
+                  {spotifyStatus === 'loading' ? 'Adding Song...' : 'Add Song to Playlist'}
                 </Button>
               </div>
             </Card>
 
             {/* Virtual AI Coach */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-violet-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-violet-500/10">
-  <div className="flex items-center justify-between mb-4">
-    <h3 className="font-semibold text-slate-100">Virtual AI Coach</h3>
-    <button className="text-sm text-slate-400 hover:text-violet-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-violet-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
-  </div>
-  
-  <div className="group">
-    <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-4 text-white text-center transition-all duration-500 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25">
-      <div className="text-lg mb-2 transition-all duration-300 group-hover:scale-125">🤖</div>
-      <div className="font-semibold mb-1">Get personalized advice</div>
-      <div className="text-sm text-slate-300 mb-3">Your AI assistant is here to help you build better habits and achieve your goals.</div>
-      <Button variant="secondary" size="sm" className="bg-white text-slate-900 hover:bg-slate-100 transition-all duration-300 hover:scale-110 hover:shadow-lg">
-        Get Advice
-      </Button>
-    </div>
-  </div>
-
-  {/* Favorite Habits */}
-  <div>
-    <div className="flex items-center justify-between mb-3">
-      <h4 className="font-medium text-slate-100">Favorite Habits</h4>
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="New habit..."
-          value={newHabitText}
-          onChange={(e) => setNewHabitText(e.target.value)}
-          className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-violet-500/10"
-          onKeyPress={(e) => e.key === 'Enter' && addHabit()}
-        />
-        <Button size="sm" onClick={addHabit} className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25">
-          <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
-        </Button>
-      </div>
-    </div>
-    <div className="space-y-3 max-h-64 overflow-y-auto">
-      {favoriteHabits.map((habit, index) => (
-        <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
-          <div className={`w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
-            {habit.title.slice(0, 2)}
-          </div>
-          <div className="flex-1">
-            {editingHabit === habit.id ? (
-              <div className="flex gap-2">
-                <Input
-                  value={newHabitText}
-                  onChange={(e) => setNewHabitText(e.target.value)}
-                  className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
-                  onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
-                />
-                <Button size="sm" onClick={() => editHabit(habit.id, newHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
-                  <Check className="w-3 h-3" />
-                </Button>
-                <Button size="sm" onClick={() => setEditingHabit(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.title}</div>
-                <div className="flex items-center gap-2">
-                  <div className="text-xs text-slate-400">Streak: {habit.streak}</div>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <Button
-              size="sm"
-              onClick={() => {
-                setEditingHabit(habit.id);
-                setNewHabitText(habit.title);
-              }}
-              className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-            >
-              <Edit2 className="w-3 h-3" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => deleteHabit(habit.id)}
-              className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-</Card>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-slate-100">Virtual AI Coach</h3>
                 <button className="text-sm text-slate-400 hover:text-violet-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-violet-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>

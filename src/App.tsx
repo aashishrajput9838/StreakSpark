@@ -21,6 +21,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import FaqPage from "./pages/FaqPage";
 import IndexPage from "./pages/IndexPage";
+import HabitsWrappedPage from "./pages/HabitsWrappedPage";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -91,6 +92,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <ContactPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/wrapped"
+                    element={
+                      <ProtectedRoute>
+                        <HabitsWrappedPage />
                       </ProtectedRoute>
                     }
                   />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
-import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User } from 'lucide-react';
+import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User, Star } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import AddCompetitionModal from './dashboard/AddCompetitionModal';
 import AddHabitModal from './dashboard/AddHabitModal';
 import { Competition } from '@/types';
+import { useHabits, Habit } from '@/hooks/useHabits';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from 'react-router-dom';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -44,12 +46,14 @@ const itemVariants: Variants = {
 const adminUids = ['nL1uSGOcefbt22abnYDD04bn1Ta2']; 
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuthContext();
+  const { habits, createHabit, updateHabit, deleteHabit: deleteHabitFromHook } = useHabits();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
   const [editingTodo, setEditingTodo] = useState<number | null>(null);
   const [newTodoText, setNewTodoText] = useState('');
-  const [editingHabit, setEditingHabit] = useState<number | null>(null);
+  const [editingHabit, setEditingHabit] = useState<string | null>(null);
   const [newHabitText, setNewHabitText] = useState('');
   const [weatherData, setWeatherData] = useState<{
     temperature: number;
@@ -65,6 +69,8 @@ const Dashboard = () => {
   const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
+
+  const favoriteHabits = habits.filter(habit => habit.isFavorite);
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -134,16 +140,6 @@ const Dashboard = () => {
     { id: 5, title: 'Swimming for 45min', time: '06:00am', location: 'Gym Pool', icon: '🏊‍♀️', completed: true }
   ]);
 
-  const [favoriteHabits, setFavoriteHabits] = useState([
-    { id: 1, name: 'Tennis', progress: 24, color: 'bg-amber-500' },
-    { id: 2, name: 'Running', progress: 76, color: 'bg-emerald-500' },
-    { id: 3, name: 'Swimming', progress: 45, color: 'bg-blue-500' },
-    { id: 4, name: 'Study', progress: 68, color: 'bg-violet-500' },
-    { id: 5, name: 'Gym', progress: 32, color: 'bg-pink-500' },
-    { id: 6, name: 'Reading', progress: 89, color: 'bg-rose-500' },
-    { id: 7, name: 'Design', progress: 56, color: 'bg-indigo-500' }
-  ]);
-
   const [shouldDoItems, setShouldDoItems] = useState([
     { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 2000 },
     { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
@@ -194,37 +190,23 @@ const Dashboard = () => {
     }
   };
 
-  const updateHabitProgress = (id: number, change: number) => {
-    setFavoriteHabits(favoriteHabits.map(habit => 
-      habit.id === id ? { 
-        ...habit, 
-        progress: Math.max(0, Math.min(100, habit.progress + change)) 
-      } : habit
-    ));
+  const deleteHabit = async (id: string) => {
+    await deleteHabitFromHook(id);
   };
 
-  const deleteHabit = (id: number) => {
-    setFavoriteHabits(favoriteHabits.filter(habit => habit.id !== id));
-  };
-
-  const editHabit = (id: number, newName: string) => {
-    setFavoriteHabits(favoriteHabits.map(habit => 
-      habit.id === id ? { ...habit, name: newName } : habit
-    ));
+  const editHabit = async (id: string, newName: string) => {
+    await updateHabit(id, { title: newName });
     setEditingHabit(null);
     setNewHabitText('');
   };
 
-  const addHabit = () => {
+  const addHabit = async () => {
     if (newHabitText.trim()) {
-      const colors = ['bg-amber-500', 'bg-emerald-500', 'bg-blue-500', 'bg-violet-500', 'bg-pink-500', 'bg-rose-500', 'bg-indigo-500'];
-      const newHabit = {
-        id: Math.max(...favoriteHabits.map(h => h.id)) + 1,
-        name: newHabitText,
-        progress: 0,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      };
-      setFavoriteHabits([...favoriteHabits, newHabit]);
+      await createHabit({
+        title: newHabitText,
+        frequency: 'daily',
+        isFavorite: true,
+      });
       setNewHabitText('');
     }
   };
@@ -667,33 +649,108 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Analytics */}
+            {/* Virtual AI Coach */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-violet-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-violet-500/10">
+  <div className="flex items-center justify-between mb-4">
+    <h3 className="font-semibold text-slate-100">Virtual AI Coach</h3>
+    <button className="text-sm text-slate-400 hover:text-violet-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-violet-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
+  </div>
+  
+  <div className="group">
+    <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-4 text-white text-center transition-all duration-500 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25">
+      <div className="text-lg mb-2 transition-all duration-300 group-hover:scale-125">🤖</div>
+      <div className="font-semibold mb-1">Get personalized advice</div>
+      <div className="text-sm text-slate-300 mb-3">Your AI assistant is here to help you build better habits and achieve your goals.</div>
+      <Button variant="secondary" size="sm" className="bg-white text-slate-900 hover:bg-slate-100 transition-all duration-300 hover:scale-110 hover:shadow-lg">
+        Get Advice
+      </Button>
+    </div>
+  </div>
+
+  {/* Favorite Habits */}
+  <div>
+    <div className="flex items-center justify-between mb-3">
+      <h4 className="font-medium text-slate-100">Favorite Habits</h4>
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder="New habit..."
+          value={newHabitText}
+          onChange={(e) => setNewHabitText(e.target.value)}
+          className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-violet-500/10"
+          onKeyPress={(e) => e.key === 'Enter' && addHabit()}
+        />
+        <Button size="sm" onClick={addHabit} className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25">
+          <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
+        </Button>
+      </div>
+    </div>
+    <div className="space-y-3 max-h-64 overflow-y-auto">
+      {favoriteHabits.map((habit, index) => (
+        <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
+          <div className={`w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
+            {habit.title.slice(0, 2)}
+          </div>
+          <div className="flex-1">
+            {editingHabit === habit.id ? (
+              <div className="flex gap-2">
+                <Input
+                  value={newHabitText}
+                  onChange={(e) => setNewHabitText(e.target.value)}
+                  className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
+                  onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
+                />
+                <Button size="sm" onClick={() => editHabit(habit.id, newHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                  <Check className="w-3 h-3" />
+                </Button>
+                <Button size="sm" onClick={() => setEditingHabit(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.title}</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-slate-400">Streak: {habit.streak}</div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingHabit(habit.id);
+                setNewHabitText(habit.title);
+              }}
+              className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
+            >
+              <Edit2 className="w-3 h-3" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => deleteHabit(habit.id)}
+              className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</Card>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-100">Analytics</h3>
+                <h3 className="font-semibold text-slate-100">Virtual AI Coach</h3>
                 <button className="text-sm text-slate-400 hover:text-violet-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-violet-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
               </div>
               
-              {/* Positive Habits */}
-              <div className="mb-6 group">
-                <div className="bg-gradient-to-r from-emerald-600 to-green-600 rounded-lg p-4 mb-3 transition-all duration-500 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25">
-                  <div className="flex items-center gap-2 text-white">
-                    <span className="text-lg transition-all duration-300 group-hover:scale-125">😊</span>
-                    <span className="text-sm">Positive Habits</span>
-                  </div>
-                  <div className="text-2xl font-bold text-white mt-2 transition-all duration-300 group-hover:scale-110">+58.2%</div>
-                </div>
-              </div>
-
-              {/* Habits Wrapped 2023 */}
-              <div className="mb-6 group">
+              <div className="group">
                 <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-4 text-white text-center transition-all duration-500 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25">
-                  <div className="text-lg mb-2 transition-all duration-300 group-hover:scale-125">🎁</div>
-                  <div className="font-semibold mb-1">Habits</div>
-                  <div className="font-semibold mb-1">Wrapped</div>
-                  <div className="text-2xl font-bold mb-3 transition-all duration-300 group-hover:scale-110">2023</div>
+                  <div className="text-lg mb-2 transition-all duration-300 group-hover:scale-125">🤖</div>
+                  <div className="font-semibold mb-1">Get personalized advice</div>
+                  <div className="text-sm text-slate-300 mb-3">Your AI assistant is here to help you build better habits and achieve your goals.</div>
                   <Button variant="secondary" size="sm" className="bg-white text-slate-900 hover:bg-slate-100 transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                    View
+                    Get Advice
                   </Button>
                 </div>
               </div>
@@ -718,8 +775,8 @@ const Dashboard = () => {
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {favoriteHabits.map((habit, index) => (
                     <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
-                      <div className={`w-8 h-8 ${habit.color} rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
-                        {habit.name.slice(0, 2)}
+                      <div className={`w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
+                        {habit.title.slice(0, 2)}
                       </div>
                       <div className="flex-1">
                         {editingHabit === habit.id ? (
@@ -739,15 +796,9 @@ const Dashboard = () => {
                           </div>
                         ) : (
                           <>
-                            <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.name}</div>
+                            <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.title}</div>
                             <div className="flex items-center gap-2">
-                              <div className="text-xs text-slate-400">{habit.progress}%</div>
-                              <div className="w-16 h-1 bg-slate-700 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full ${habit.color} transition-all duration-500 group-hover:animate-pulse`}
-                                  style={{ width: `${habit.progress}%` }}
-                                ></div>
-                              </div>
+                              <div className="text-xs text-slate-400">Streak: {habit.streak}</div>
                             </div>
                           </>
                         )}
@@ -755,23 +806,9 @@ const Dashboard = () => {
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
                         <Button
                           size="sm"
-                          onClick={() => updateHabitProgress(habit.id, -5)}
-                          className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-                        >
-                          -
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => updateHabitProgress(habit.id, 5)}
-                          className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-                        >
-                          +
-                        </Button>
-                        <Button
-                          size="sm"
                           onClick={() => {
                             setEditingHabit(habit.id);
-                            setNewHabitText(habit.name);
+                            setNewHabitText(habit.title);
                           }}
                           className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
                         >

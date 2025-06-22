@@ -18,6 +18,8 @@ export interface Habit {
   isFavorite?: boolean;
 }
 
+export type CreateHabitData = Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted'>;
+
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export function useHabits() {
     return () => unsubscribe();
   }, [user]);
 
-  const createHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted' | 'isFavorite'> & { title: string }) => {
+  const createHabit = async (habitData: CreateHabitData) => {
     if (!user) throw new Error('User must be logged in');
 
     try {
@@ -70,7 +72,7 @@ export function useHabits() {
         createdAt: new Date(),
         completedDates: [],
         streak: 0,
-        isFavorite: false,
+        isFavorite: habitData.isFavorite ?? false,
       };
       await addDocument('habits', newHabit);
     } catch (error) {

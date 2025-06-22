@@ -15,6 +15,7 @@ export interface Habit {
   completedDates: string[];
   streak: number;
   lastCompleted?: Date;
+  isFavorite?: boolean;
 }
 
 export function useHabits() {
@@ -59,7 +60,7 @@ export function useHabits() {
     return () => unsubscribe();
   }, [user]);
 
-  const createHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted'> & { title: string }) => {
+  const createHabit = async (habitData: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'completedDates' | 'streak' | 'lastCompleted' | 'isFavorite'> & { title: string }) => {
     if (!user) throw new Error('User must be logged in');
 
     try {
@@ -69,6 +70,7 @@ export function useHabits() {
         createdAt: new Date(),
         completedDates: [],
         streak: 0,
+        isFavorite: false,
       };
       await addDocument('habits', newHabit);
     } catch (error) {
@@ -137,6 +139,19 @@ export function useHabits() {
     }
   };
 
+  const toggleFavorite = async (habitId: string) => {
+    if (!user) throw new Error('User must be logged in');
+    try {
+      const habit = habits.find((h) => h.id === habitId);
+      if (habit) {
+        await updateDocument('habits', habitId, { isFavorite: !habit.isFavorite });
+      }
+    } catch (error) {
+      console.error('Error toggling favorite status:', error);
+      throw new Error('Failed to toggle favorite status');
+    }
+  };
+
   return {
     habits,
     loading,
@@ -145,5 +160,6 @@ export function useHabits() {
     updateHabit,
     deleteHabit,
     toggleHabitCompletion,
+    toggleFavorite,
   };
 } 

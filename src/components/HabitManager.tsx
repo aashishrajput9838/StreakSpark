@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Star } from 'lucide-react';
 
 export function HabitManager() {
-  const { habits, loading, error, deleteHabit, toggleHabitCompletion } = useHabits();
+  const { habits, loading, error, deleteHabit, toggleHabitCompletion, toggleFavorite } = useHabits();
   
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
 
@@ -94,6 +95,13 @@ export function HabitManager() {
                           onClick={() => handleDeleteHabit(habit.id)}
                         >
                           Delete
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleFavorite(habit.id)}
+                        >
+                          <Star className={habit.isFavorite ? "text-yellow-400 fill-yellow-400" : "text-gray-400"} />
                         </Button>
                       </div>
                     </div>

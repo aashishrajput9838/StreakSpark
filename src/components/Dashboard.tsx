@@ -1,3 +1,4 @@
+import LoginWithSpotify from './LoginWithSpotify';
 import React, { useState, useEffect } from 'react';
 import { motion, Variants, Transition } from 'framer-motion';
 import { Calendar, ChevronRight, Plus, Search, TrendingUp, MapPin, Clock, Home, BookOpen, Utensils, Dumbbell, Car, Music, MoreHorizontal, Edit2, Trash2, Check, X, User, Star } from 'lucide-react';
@@ -670,14 +671,20 @@ const Dashboard = () => {
                 <h3 className="font-semibold text-slate-100 mb-2">Add Music to</h3>
                 <h3 className="font-semibold text-slate-100 mb-2">Your Playlist</h3>
                 <p className="text-sm text-slate-400 mb-4 transition-all duration-300 group-hover:text-slate-300">Keep your workout playlist fresh by adding new tracks directly from your dashboard.</p>
-                <Button 
-                  onClick={handleAddMusicToPlaylist}
-                  disabled={spotifyStatus === 'loading'}
-                  className="w-full bg-slate-800/50 hover:bg-emerald-700 text-slate-100 rounded-lg border border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50"
-                >
-                  <Music className="w-4 h-4 mr-2 transition-transform duration-300 hover:rotate-12" />
-                  {spotifyStatus === 'loading' ? 'Adding Song...' : 'Add Song to Playlist'}
-                </Button>
+                <Card className="p-6 bg-slate-900/50 ...">
+  <div className="text-center mb-4">
+    <div className="w-12 h-12 ...">
+      <Music className="w-6 h-6 text-white" />
+    </div>
+    <h3 className="font-semibold text-slate-100 mb-2">Connect your</h3>
+    <h3 className="font-semibold text-slate-100 mb-2">Spotify account</h3>
+    <p className="text-sm text-slate-400 mb-4 ...">
+      Empower yourself with habit tracking while enjoying uninterrupted music
+    </p>
+    {/* Replace the Button below with the LoginWithSpotify component */}
+    <LoginWithSpotify />
+  </div>
+</Card>
               </div>
             </Card>
 
@@ -727,7 +734,7 @@ const Dashboard = () => {
                           <div className="flex gap-2">
                             <Input
                               value={newHabitText}
-                              onChange={(e) => setNewHabitText(e.target.value)}
+                              onChange= {(e) => setNewHabitText(e.target.value)}
                               className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
                               onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
                             />

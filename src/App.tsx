@@ -29,6 +29,7 @@ import { FirebaseProvider } from '@/contexts/FirebaseContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import MainLayout from "./components/MainLayout";
 import ScrollToTop from "./components/ScrollToTop";
+import SpotifyCallback from './components/SpotifyCallback';
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ function App() {
                 {/* Routes without MainLayout can be placed here */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignUpPage />} />
+                <Route path="/callback" element={<SpotifyCallback />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

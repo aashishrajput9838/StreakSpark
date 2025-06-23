@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { addTracksToPlaylist } from '@/lib/spotifyAPI';
 import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
+import SpotifyPlayer from './SpotifyPlayer';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -72,9 +73,18 @@ const Dashboard = () => {
   const [competitionToEdit, setCompetitionToEdit] = useState<Competition | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
+  const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
+
+  useEffect(() => {
+    // Check for the Spotify token when the component mounts
+    const token = localStorage.getItem('spotifyAccessToken');
+    if (token) {
+      setSpotifyToken(token);
+    }
+  }, []);
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -639,7 +649,7 @@ const Dashboard = () => {
           <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">
             {/* Connect Spotify */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-emerald-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10 group">
-              <LoginWithSpotify />
+              {spotifyToken ? <SpotifyPlayer /> : <LoginWithSpotify />}
             </Card>
 
             {/* Virtual AI Coach */}

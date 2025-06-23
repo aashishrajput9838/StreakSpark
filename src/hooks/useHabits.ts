@@ -75,6 +75,14 @@ export function useHabits() {
         isFavorite: habitData.isFavorite ?? false,
       };
       await addDocument('habits', newHabit);
+      
+      // Update user stats
+      const totalHabits = habits.length + 1;
+      const totalStreak = habits.reduce((total, habit) => total + habit.streak, 0);
+      await updateDocument('userProfiles', user.uid, {
+        totalHabits,
+        totalStreak,
+      });
     } catch (error) {
       console.error('Error creating habit:', error);
       throw new Error('Failed to create habit');
@@ -86,6 +94,15 @@ export function useHabits() {
 
     try {
       await updateDocument('habits', habitId, updates);
+      
+      // Update user stats if streak changed
+      if (updates.streak !== undefined) {
+        const updatedHabits = habits.map(h => h.id === habitId ? { ...h, ...updates } : h);
+        const totalStreak = updatedHabits.reduce((total, habit) => total + habit.streak, 0);
+        await updateDocument('userProfiles', user.uid, {
+          totalStreak,
+        });
+      }
     } catch (error) {
       console.error('Error updating habit:', error);
       throw new Error('Failed to update habit');
@@ -96,7 +113,18 @@ export function useHabits() {
     if (!user) throw new Error('User must be logged in');
 
     try {
+      const habitToDelete = habits.find(h => h.id === habitId);
       await deleteDocument('habits', habitId);
+      
+      // Update user stats
+      const totalHabits = Math.max(0, habits.length - 1);
+      const totalStreak = habits.reduce((total, habit) => 
+        habit.id === habitId ? total : total + habit.streak, 0
+      );
+      await updateDocument('userProfiles', user.uid, {
+        totalHabits,
+        totalStreak,
+      });
     } catch (error) {
       console.error('Error deleting habit:', error);
       throw new Error('Failed to delete habit');
@@ -134,6 +162,15 @@ export function useHabits() {
         completedDates: newCompletedDates,
         streak: newStreak,
         lastCompleted: isCompleted ? null : new Date(),
+      });
+
+      // Update user stats
+      const updatedHabits = habits.map(h => 
+        h.id === habitId ? { ...h, streak: newStreak } : h
+      );
+      const totalStreak = updatedHabits.reduce((total, habit) => total + habit.streak, 0);
+      await updateDocument('userProfiles', user.uid, {
+        totalStreak,
       });
     } catch (error) {
       console.error('Error toggling habit completion:', error);

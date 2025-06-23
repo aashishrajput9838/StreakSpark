@@ -24,6 +24,7 @@ import { addTracksToPlaylist } from '@/lib/spotifyAPI';
 import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
 import SpotifyPlayer from './SpotifyPlayer';
+import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -741,6 +742,15 @@ const Dashboard = () => {
                   ))}
                 </div>
               </div>
+            </Card>
+
+            {/* Friends Leaderboard */}
+            <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-pink-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-pink-500/10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-100">Friends Leaderboard</h3>
+                <button className="text-sm text-slate-400 hover:text-pink-400 transition-all duration-300 hover:scale-105 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-pink-400 after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left">View Details</button>
+              </div>
+              <FriendsLeaderboardWidget />
             </Card>
           </motion.div>
         </motion.div>

@@ -20,7 +20,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
-import { addTracksToPlaylist } from '@/lib/spotifyAPI';
 import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
 import SpotifyPlayer from './SpotifyPlayer';

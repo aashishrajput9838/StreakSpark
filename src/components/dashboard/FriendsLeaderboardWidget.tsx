@@ -1,39 +1,65 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Trophy, Users, UserPlus, X, Check, Clock } from 'lucide-react';
 
-interface Friend {
-  id: string;
-  name: string;
-  streak: number;
-  avatar: string;
-}
-
-const mockFriends: Friend[] = [
-  { id: '1', name: 'Alice', streak: 365, avatar: 'https://randomuser.me/api/portraits/women/1.jpg' },
-  { id: '2', name: 'Bob', streak: 280, avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
-  { id: '3', name: 'Charlie', streak: 150, avatar: 'https://randomuser.me/api/portraits/men/2.jpg' },
-  { id: '4', name: 'Diana', streak: 90, avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
-  { id: '5', name: 'Eve', streak: 45, avatar: 'https://randomuser.me/api/portraits/women/3.jpg' },
-];
-
-const FriendsLeaderboardWidget: React.FC = () => {
-  // In a real application, this data would be fetched from an API
-  const sortedFriends = [...mockFriends].sort((a, b) => b.streak - a.streak);
+export default function FriendsLeaderboardWidget() {
+  const [addFriendId, setAddFriendId] = useState('');
 
   return (
-    <div className="bg-appPalette-dark-card rounded-xl p-6 shadow flex flex-col gap-4 text-appPalette-dark-text">
-      <h2 className="text-xl font-semibold mb-2">Friends Leaderboard</h2>
-      <div className="space-y-3">
-        {sortedFriends.map((friend, index) => (
-          <div key={friend.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-appPalette-dark-background hover:bg-appPalette-dark-border transition-colors duration-200 ease-in-out">
-            <span className="font-bold text-lg text-appPalette-dark-muted w-6 text-center">{index + 1}.</span>
-            <img src={friend.avatar} alt={friend.name} className="w-10 h-10 rounded-full object-cover" />
-            <span className="font-medium text-appPalette-dark-text flex-grow">{friend.name}</span>
-            <span className="text-lg font-semibold text-appPalette-pink">{friend.streak} day{friend.streak !== 1 ? 's' : ''} streak</span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-4"
+    >
+      {/* Add Friend Section */}
+      <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border-purple-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <UserPlus className="w-5 h-5" />
+            Add Friend
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter friend ID (e.g., abhi123)"
+              value={addFriendId}
+              onChange={(e) => setAddFriendId(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700"
+            >
+              Add
+            </Button>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+          <div className="text-sm text-purple-600 bg-purple-100 p-2 rounded-md">
+            <strong>Your ID:</strong> demo123
+          </div>
+        </CardContent>
+      </Card>
 
-export default FriendsLeaderboardWidget; 
+      {/* Leaderboard */}
+      <Card className="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-blue-50 border-purple-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <Users className="w-5 h-5" />
+            Friends Leaderboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No friends yet. Add some friends to see the leaderboard!</p>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+} 

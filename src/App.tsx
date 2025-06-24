@@ -30,6 +30,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import MainLayout from "./components/MainLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import SpotifyCallback from './components/SpotifyCallback';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
@@ -76,7 +77,9 @@ function App() {
                     path="/index"
                     element={
                       <ProtectedRoute>
-                        <IndexPage />
+                        <ErrorBoundary>
+                          <Dashboard />
+                        </ErrorBoundary>
                       </ProtectedRoute>
                     }
                   />

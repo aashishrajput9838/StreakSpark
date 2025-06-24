@@ -200,10 +200,8 @@ const Dashboard = () => {
   const addTodo = () => {
     if (newTodoText.trim()) {
       const newTodo = {
-        id: Math.max(...todos.map(t => t.id)) + 1,
+        id: Math.max(...todos.map(t => t.id), 0) + 1,
         title: newTodoText,
-        time: '09:00am',
-        location: 'Home',
         icon: '✨',
         completed: false
       };
@@ -681,12 +679,14 @@ const Dashboard = () => {
                             <div className={`font-medium text-sm transition-all duration-300 ${todo.completed ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-blue-300'}`}>
                               {todo.title}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                              <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                              <span>{todo.time}</span>
-                              <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                              <span>{todo.location}</span>
-                            </div>
+                            {todo.time && todo.location && (
+                              <div className="flex items-center gap-2 text-xs text-slate-400">
+                                <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
+                                <span>{todo.time}</span>
+                                <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
+                                <span>{todo.location}</span>
+                              </div>
+                            )}
                           </>
                         )}
                       </div>

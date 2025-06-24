@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; add dragging (scrubbing) or a more advanced UI
 import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaHeart, FaRegHeart, FaVolumeUp } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaHeart, FaRegHeart, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 
 const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
@@ -26,6 +26,12 @@ const YouTubeMusicPlayer: React.FC = () => {
   const [showOverlay, setShowOverlay] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const playerRef = useRef<any>(null);
+  const ytPlayerDivRef = useRef<HTMLDivElement>(null);
 
   // Load favorites from Firestore on mount
   useEffect(() => {
@@ -49,6 +55,66 @@ const YouTubeMusicPlayer: React.FC = () => {
       setCurrentIndex(idx !== -1 ? idx : 0);
     }
   }, [nowPlaying, playlist]);
+
+  // Load YouTube IFrame API and create player when nowPlaying changes
+  useEffect(() => {
+    if (!nowPlaying) return;
+    function createPlayer() {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+      playerRef.current = new window.YT.Player('yt-music-player', {
+        videoId: nowPlaying.videoId,
+        height: '0',
+        width: '100%',
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+        },
+        events: {
+          onReady: (event: any) => {
+            if (muted) event.target.mute();
+            else event.target.unMute();
+          },
+        },
+      });
+    }
+    // @ts-ignore
+    if (!(window as any).YT) {
+      // @ts-ignore
+      (window as any).onYouTubeIframeAPIReady = createPlayer;
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.body.appendChild(tag);
+    } else {
+      createPlayer();
+    }
+    // Cleanup on unmount
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nowPlaying]);
+
+  // Poll current time and duration from the player
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (playerRef.current) {
+      interval = setInterval(() => {
+        const player = playerRef.current;
+        if (player && typeof player.getCurrentTime === 'function' && typeof player.getDuration === 'function') {
+          setCurrentTime(player.getCurrentTime());
+          setDuration(player.getDuration());
+        }
+      }, 500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [nowPlaying, isPlaying]);
 
   const playSong = async () => {
     setError('');
@@ -108,23 +174,59 @@ const YouTubeMusicPlayer: React.FC = () => {
 
   // Play/pause toggles iframe mount
   const handlePlayPause = () => {
-    setIsPlaying(p => !p);
+    if (playerRef.current) {
+      if (isPlaying) {
+        playerRef.current.pauseVideo();
+        setIsPlaying(false);
+      } else {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }
+    }
   };
 
   const handleNext = () => {
     if (playlist.length === 0) return;
     const nextIdx = (currentIndex + 1) % playlist.length;
+    setCurrentIndex(nextIdx);
     setNowPlaying(playlist[nextIdx]);
-    setEmbedUrl(`https://www.youtube.com/embed/${playlist[nextIdx].videoId}?autoplay=1&controls=1`);
-    setIsPlaying(true);
+    if (playerRef.current) {
+      playerRef.current.loadVideoById(playlist[nextIdx].videoId);
+      setIsPlaying(true);
+    }
   };
 
   const handlePrev = () => {
     if (playlist.length === 0) return;
     const prevIdx = (currentIndex - 1 + playlist.length) % playlist.length;
+    setCurrentIndex(prevIdx);
     setNowPlaying(playlist[prevIdx]);
-    setEmbedUrl(`https://www.youtube.com/embed/${playlist[prevIdx].videoId}?autoplay=1&controls=1`);
-    setIsPlaying(true);
+    if (playerRef.current) {
+      playerRef.current.loadVideoById(playlist[prevIdx].videoId);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleToggleMute = () => {
+    if (playerRef.current) {
+      if (muted) {
+        playerRef.current.unMute();
+        setMuted(false);
+      } else {
+        playerRef.current.mute();
+        setMuted(true);
+      }
+    }
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!playerRef.current || !duration) return;
+    const rect = (e.target as HTMLDivElement).getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percent = clickX / rect.width;
+    const seekTo = percent * duration;
+    playerRef.current.seekTo(seekTo, true);
+    setCurrentTime(seekTo);
   };
 
   return (
@@ -184,13 +286,12 @@ const YouTubeMusicPlayer: React.FC = () => {
             />
             <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 4, textAlign: 'center' }}>{nowPlaying.title}</div>
             <div style={{ color: '#ffe', fontSize: 15, marginBottom: 18, textAlign: 'center' }}>{nowPlaying.channel}</div>
-            <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.18)', borderRadius: 3, marginBottom: 8, position: 'relative' }}>
-              {/* Fake progress bar (static) */}
-              <div style={{ width: '20%', height: '100%', background: '#fff', borderRadius: 3, transition: 'width 0.3s' }}></div>
+            <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.18)', borderRadius: 3, marginBottom: 8, position: 'relative', cursor: 'pointer' }} onClick={handleSeek} title="Seek">
+              <div style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%`, height: '100%', background: '#fff', borderRadius: 3, transition: 'width 0.3s' }}></div>
             </div>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#ffe', marginBottom: 10 }}>
-              <span>0:14</span>
-              <span>2:34</span>
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, marginBottom: 18 }}>
               <button onClick={handlePrev} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer' }} title="Previous"><FaStepBackward /></button>
@@ -203,20 +304,13 @@ const YouTubeMusicPlayer: React.FC = () => {
               <button onClick={() => toggleFavorite(nowPlaying)} style={{ background: 'none', border: 'none', color: isFavorite(nowPlaying) ? '#ff4b7d' : '#fff', fontSize: 26, cursor: 'pointer' }} title={isFavorite(nowPlaying) ? 'Remove from favorites' : 'Add to favorites'}>
                 {isFavorite(nowPlaying) ? <FaHeart /> : <FaRegHeart />}
               </button>
-              <FaVolumeUp style={{ fontSize: 22, color: '#fff' }} />
+              <button onClick={handleToggleMute} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 22, cursor: 'pointer' }} title={muted ? 'Unmute' : 'Mute'}>
+                {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+              </button>
             </div>
-            {/* Audio-only YouTube player, only mounted if playing */}
-            {isPlaying && (
-              <iframe
-                width="100%"
-                height="0"
-                src={embedUrl}
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                title="YouTube Music Player"
-                style={{ background: '#111', display: 'block' }}
-              />
+            {/* Always render the YouTube player div when nowPlaying is set */}
+            {nowPlaying && (
+              <div id="yt-music-player" ref={ytPlayerDivRef} style={{ width: '100%', height: 0, background: '#111', display: 'block' }} />
             )}
           </div>
         )}
@@ -277,5 +371,12 @@ const YouTubeMusicPlayer: React.FC = () => {
     </div>
   );
 };
+
+function formatTime(seconds: number) {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default YouTubeMusicPlayer;

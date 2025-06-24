@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
 import SpotifyPlayer from './SpotifyPlayer';
 import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, runTransaction } from 'firebase/firestore';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -78,8 +79,15 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [loadingHabits, setLoadingHabits] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
+  const db = getFirestore();
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
+
+  const [shouldDoItems, setShouldDoItems] = useState([
+    { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 2000 },
+    { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
+  ]);
+  const [userLikes, setUserLikes] = useState<{ [itemId: number]: boolean }>({});
 
   useEffect(() => {
     // Check for the Spotify token when the component mounts
@@ -157,11 +165,6 @@ const Dashboard = () => {
     { id: 3, title: 'Eat Healthy Food', time: '08:30am', location: 'Home', icon: '🥗', completed: true },
     { id: 4, title: 'Read a book', time: '08:00am', location: 'Library', icon: '📚', completed: true },
     { id: 5, title: 'Swimming for 45min', time: '06:00am', location: 'Gym Pool', icon: '🏊‍♀️', completed: true }
-  ]);
-
-  const [shouldDoItems, setShouldDoItems] = useState([
-    { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 2000 },
-    { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
   ]);
 
   const [competitions, setCompetitions] = useState<Competition[]>([
@@ -325,10 +328,81 @@ const Dashboard = () => {
     });
   };
 
-  const likeShouldDoItem = (id: number) => {
-    setShouldDoItems(shouldDoItems.map(item => 
-      item.id === id ? { ...item, likes: item.likes + 1 } : item
-    ));
+  useEffect(() => {
+    // Fetch like counts and user-like status from Firestore
+    const unsubLikes = shouldDoItems.map(item => {
+      const itemRef = doc(db, 'shouldDoLikes', String(item.id));
+      const userLikeRef = doc(db, 'shouldDoLikes', String(item.id), 'users', user?.uid || 'anon');
+      // Listen for like count changes
+      const unsubItem = onSnapshot(itemRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setShouldDoItems(prev => prev.map(i => i.id === item.id ? { ...i, likes: docSnap.data().likeCount || 0 } : i));
+        }
+      });
+      // Listen for user like status
+      const unsubUser = onSnapshot(userLikeRef, (docSnap) => {
+        setUserLikes(prev => ({ ...prev, [item.id]: docSnap.exists() }));
+      });
+      return () => { unsubItem(); unsubUser(); };
+    });
+    return () => { unsubLikes.forEach(unsub => unsub()); };
+  }, [user]);
+
+  const likeShouldDoItem = async (id: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to like an item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const itemDocRef = doc(db, 'shouldDoLikes', String(id));
+    const userLikeRef = doc(db, 'shouldDoLikes', String(id), 'users', user.uid);
+
+    try {
+      await runTransaction(db, async (transaction) => {
+        const userLikeDoc = await transaction.get(userLikeRef);
+        if (userLikeDoc.exists()) {
+          // Throw a custom error to be caught outside the transaction
+          throw new Error("ALREADY_LIKED");
+        }
+
+        const itemDoc = await transaction.get(itemDocRef);
+        if (!itemDoc.exists()) {
+          transaction.set(itemDocRef, { likeCount: 1 });
+        } else {
+          transaction.update(itemDocRef, { likeCount: increment(1) });
+        }
+        transaction.set(userLikeRef, { likedAt: new Date() });
+      });
+
+      // If the transaction succeeds, provide success feedback
+      toast({
+        title: "Success!",
+        description: "You've liked this item.",
+      });
+      // Immediately update the UI to disable the button
+      setUserLikes(prev => ({ ...prev, [id]: true }));
+
+    } catch (error: any) {
+      if (error.message === "ALREADY_LIKED") {
+        toast({
+          title: "Already Liked",
+          description: "You have already liked this item.",
+        });
+        // Ensure the button is disabled if the user has already liked it
+        setUserLikes(prev => ({ ...prev, [id]: true }));
+      } else {
+        console.error("Error liking item:", error);
+        toast({
+          title: "Error",
+          description: "Could not like the item. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   return (
@@ -669,6 +743,7 @@ const Dashboard = () => {
                       size="sm"
                       onClick={() => likeShouldDoItem(item.id)}
                       className="bg-slate-800/50 hover:bg-pink-700 text-slate-200 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-pink-500/25"
+                      disabled={userLikes[item.id]}
                     >
                       👍 Like
                     </Button>

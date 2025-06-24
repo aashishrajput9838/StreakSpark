@@ -1,0 +1,52 @@
+    rules_version = '2';
+
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        // Helper functions
+        function isAuthenticated() {
+          return request.auth != null;
+        }
+        
+        function isOwner(userId) {
+          return request.auth.uid == userId;
+        }
+
+        // Habits collection
+        match /habits/{habitId} {
+          allow read: if isAuthenticated();
+          allow create: if isAuthenticated() && 
+            request.resource.data.userId == request.auth.uid;
+          allow update, delete: if isAuthenticated() && 
+            resource.data.userId == request.auth.uid;
+        }
+
+        // Users collection
+        match /users/{userId} {
+          allow read: if isAuthenticated();
+          allow create: if isAuthenticated() && 
+            request.auth.uid == userId;
+          allow update, delete: if isAuthenticated() && 
+            request.auth.uid == userId;
+        }
+
+        // Should Do Likes collection
+        match /shouldDoLikes/{itemId} {
+          // Allow any authenticated user to read or update the like count
+          allow read, write: if isAuthenticated();
+
+          // Rules for the subcollection of users who have liked the item
+          match /users/{userId} {
+            // Allow a user to read their own like status and prevent others from seeing it
+            allow read: if isOwner(userId);
+            // Allow a user to create/delete their own like, but not anyone else's
+            allow write: if isOwner(userId);
+          }
+        }
+
+        // Default deny
+        match /{document=**} {
+          allow read, write: if false;
+        }
+      }
+    }
+    

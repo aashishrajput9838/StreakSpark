@@ -21,8 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
-import LoginWithSpotify from './LoginWithSpotify';
-import SpotifyPlayer from './SpotifyPlayer';
+import YouTubeMusicPlayer from './YouTubeMusicPlayer';
 import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, runTransaction, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
@@ -577,20 +576,20 @@ const Dashboard = () => {
                 {loadingProfile ? (
                   <div className="w-10 h-10 rounded-full bg-gray-700 animate-pulse"></div>
                 ) : user ? (
-                  <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                     {userProfile?.photoURL ? (
-                      <img 
+                  <img 
                         src={userProfile.photoURL} 
-                        alt="User Profile" 
-                        className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
-                        <span className="text-white text-sm font-medium">
+                    alt="User Profile" 
+                    className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
+                    <span className="text-white text-sm font-medium">
                           {userProfile?.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
-                        </span>
-                      </div>
-                    )}
+                    </span>
+                  </div>
+                )}
                     <div className="text-left hidden md:block">
                       <p className="text-sm font-semibold text-gray-200">
                         {userProfile?.displayName || user.email}
@@ -654,8 +653,8 @@ const Dashboard = () => {
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-appPalette-dark-background">
                     <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </div>
+                </Button>
+              </div>
               </div>
               <div className="grid grid-cols-7 gap-2 text-center text-xs text-appPalette-dark-muted">
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => <div key={day}>{day}</div>)}
@@ -755,7 +754,7 @@ const Dashboard = () => {
                       <div className="text-lg transition-all duration-300 group-hover:scale-125">{todo.icon}</div>
                       <div className="flex-1">
                         <p className={`transition-colors duration-300 ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>
-                          {editingTodo === todo.id ? (
+                        {editingTodo === todo.id ? (
                             <Input
                               type="text"
                               value={newTodoText}
@@ -774,8 +773,8 @@ const Dashboard = () => {
                           <span>{new Date(todo.createdAt?.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                           <MapPin className="w-3 h-3 mr-1 ml-3" />
                           <span>Nowhere</span>
-                        </div>
-                      </div>
+                            </div>
+                            </div>
                       <div className="flex items-center space-x-2">
                         {editingTodo === todo.id ? (
                           <>
@@ -792,23 +791,23 @@ const Dashboard = () => {
                           </>
                         ) : (
                           <>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setEditingTodo(todo.id);
-                                setNewTodoText(todo.title);
-                              }}
-                              className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => deleteTodo(todo.id)}
-                              className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setEditingTodo(todo.id);
+                            setNewTodoText(todo.title);
+                          }}
+                          className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => deleteTodo(todo.id)}
+                          className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                           </>
                         )}
                       </div>
@@ -921,7 +920,7 @@ const Dashboard = () => {
           <motion.div variants={itemVariants} className="col-span-12 lg:col-span-3 space-y-6">
             {/* Connect Spotify */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-emerald-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10 group">
-              {spotifyToken ? <SpotifyPlayer /> : <LoginWithSpotify />}
+              <YouTubeMusicPlayer />
             </Card>
 
             {/* Virtual AI Coach */}

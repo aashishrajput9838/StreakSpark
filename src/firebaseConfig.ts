@@ -2,13 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDqN8r1pxk359fY58t_HqKIKRLlTJrBf8g",
-  authDomain: "streakspark-91b90.firebaseapp.com",
-  projectId: "streakspark-91b90",
-  storageBucket: "streakspark-91b90.firebasestorage.app",
-  messagingSenderId: "824229552272",
-  appId: "1:824229552272:web:94449f2e9ecb91d2f0f815",
-  measurementId: "G-7XG1YRS3PM"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);

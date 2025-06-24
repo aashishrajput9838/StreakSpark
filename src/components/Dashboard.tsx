@@ -26,6 +26,11 @@ import SpotifyPlayer from './SpotifyPlayer';
 import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, runTransaction, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
+interface UserProfile {
+  displayName: string;
+  photoURL: string;
+}
+
 interface Todo {
   id: string;
   title: string;
@@ -87,6 +92,8 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [loadingHabits, setLoadingHabits] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const db = getFirestore();
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
@@ -98,6 +105,23 @@ const Dashboard = () => {
   const [userLikes, setUserLikes] = useState<{ [itemId: number]: boolean }>({});
 
   const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          setUserProfile(doc.data() as UserProfile);
+        } else {
+          console.log("User profile not found in Firestore");
+        }
+        setLoadingProfile(false);
+      });
+      return () => unsubscribe();
+    } else {
+      setLoadingProfile(false);
+    }
+  }, [user, db]);
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -489,7 +513,7 @@ const Dashboard = () => {
               {user ? (
                 <>
                   Good morning, <span className="text-purple-400">
-                    {user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User'}
+                    {userProfile?.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User'}
                   </span>
                 </>
               ) : (
@@ -515,28 +539,34 @@ const Dashboard = () => {
               <Calendar className="w-5 h-5" />
             </Button>
             {user ? (
-              <div className="flex items-center gap-2">
-                {user.photoURL ? (
-                  <img 
-                    src={user.photoURL} 
-                    alt="User Profile" 
-                    className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
-                    <span className="text-white text-sm font-medium">
-                      {user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
-                    </span>
+              <div className="flex items-center gap-4">
+                {loadingProfile ? (
+                  <div className="w-10 h-10 rounded-full bg-gray-700 animate-pulse"></div>
+                ) : user ? (
+                  <div className="flex items-center gap-2">
+                    {userProfile?.photoURL ? (
+                      <img 
+                        src={userProfile.photoURL} 
+                        alt="User Profile" 
+                        className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
+                        <span className="text-white text-sm font-medium">
+                          {userProfile?.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                    )}
+                    <div className="text-left hidden md:block">
+                      <p className="text-sm font-semibold text-gray-200">
+                        {userProfile?.displayName || user.email}
+                      </p>
+                      <p className="text-xs text-gray-400">Pro Member</p>
+                    </div>
                   </div>
+                ) : (
+                  <Button onClick={() => navigate('/login')}>Login</Button>
                 )}
-                <Button 
-                  onClick={() => logout()} 
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-red-400 hover:bg-red-900/20 px-3 py-1 rounded-full transition-all duration-300"
-                >
-                  Logout
-                </Button>
               </div>
             ) : (
               <Button 
@@ -712,12 +742,12 @@ const Dashboard = () => {
                               {todo.title}
                             </div>
                             {todo.time && todo.location && (
-                              <div className="flex items-center gap-2 text-xs text-slate-400">
-                                <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                                <span>{todo.time}</span>
-                                <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                                <span>{todo.location}</span>
-                              </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
+                              <span>{todo.time}</span>
+                              <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
+                              <span>{todo.location}</span>
+                            </div>
                             )}
                           </>
                         )}

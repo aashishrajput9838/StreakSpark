@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const SignUpPage: React.FC = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
     try {
@@ -29,7 +30,7 @@ const SignUpPage: React.FC = () => {
       toast.success("Successfully signed up!");
       navigate('/login'); // Redirect to login page after successful signup
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -39,15 +40,27 @@ const SignUpPage: React.FC = () => {
       const user = result.user;
 
       if (user) {
-        const displayName = user.displayName;
-        const photoURL = user.photoURL;
-        await updateProfile(user, { displayName, photoURL });
+        // Save user data to Firestore
+        const db = getFirestore();
+        const userDocRef = doc(db, 'users', user.uid);
+
+        console.log("Original photoURL from Google:", user.photoURL);
+        // Clean up the photoURL to get the base image
+        const photoURL = user.photoURL ? user.photoURL.split('=')[0] : null;
+        console.log("Cleaned photoURL to be saved:", photoURL);
+        
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: photoURL,
+        }, { merge: true }); // Use merge to avoid overwriting existing data
       }
       
       toast.success(`Successfully signed up with ${provider.providerId.replace('.com', '')}!`);
       navigate('/index');
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 

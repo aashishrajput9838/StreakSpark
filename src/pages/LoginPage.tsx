@@ -3,6 +3,7 @@ import { auth } from '../firebaseConfig';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, fetchSignInMethodsForEmail, updateProfile, AuthProvider } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -43,11 +44,20 @@ const LoginPage: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Ensure the profile is updated with the latest info from the provider
       if (user) {
-        const displayName = user.displayName;
-        const photoURL = user.photoURL;
-        await updateProfile(user, { displayName, photoURL });
+        // Save user data to Firestore
+        const db = getFirestore();
+        const userDocRef = doc(db, 'users', user.uid);
+        
+        // Clean up the photoURL to get the base image
+        const photoURL = user.photoURL ? user.photoURL.split('=')[0] : null;
+
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: photoURL,
+        }, { merge: true }); // Use merge to avoid overwriting existing data
       }
       
       toast.success(`Successfully signed in with ${provider.providerId.replace('.com', '')}!`);

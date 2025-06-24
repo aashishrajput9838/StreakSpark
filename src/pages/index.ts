@@ -16,4 +16,7 @@ export * from './NotFound';
 export * from './PrivacyPolicyPage';
 export * from './SignUpPage';
 export * from './TermsOfServicePage';
-export * from './TestPage'; 
+export * from './TestPage';
+export * from './AtomicHabitsPage';
+export * from './StayingMotivatedPage';
+export * from './MorningRoutinePage'; 

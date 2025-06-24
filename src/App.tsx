@@ -31,6 +31,9 @@ import MainLayout from "./components/MainLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import SpotifyCallback from './components/SpotifyCallback';
 import ErrorBoundary from './components/ErrorBoundary';
+import AtomicHabitsPage from './pages/AtomicHabitsPage';
+import StayingMotivatedPage from './pages/StayingMotivatedPage';
+import MorningRoutinePage from './pages/MorningRoutinePage';
 
 const queryClient = new QueryClient();
 
@@ -107,6 +110,9 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/blog/atomic-habits" element={<ProtectedRoute><AtomicHabitsPage /></ProtectedRoute>} />
+                  <Route path="/blog/staying-motivated" element={<ProtectedRoute><StayingMotivatedPage /></ProtectedRoute>} />
+                  <Route path="/blog/morning-routine" element={<ProtectedRoute><MorningRoutinePage /></ProtectedRoute>} />
                 </Route>
                 {/* Routes without MainLayout can be placed here */}
                 <Route path="/login" element={<LoginPage />} />

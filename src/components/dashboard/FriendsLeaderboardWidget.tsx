@@ -18,48 +18,42 @@ export default function FriendsLeaderboardWidget() {
       className="space-y-4"
     >
       {/* Add Friend Section */}
-      <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border-purple-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-purple-800">
-            <UserPlus className="w-5 h-5" />
-            Add Friend
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <div className="flex items-center gap-2 mb-3">
+          <UserPlus className="w-5 h-5 text-pink-400" />
+          <h4 className="font-medium text-slate-100">Add Friend</h4>
+        </div>
+        <div className="space-y-3">
           <div className="flex gap-2">
             <Input
               placeholder="Enter friend ID (e.g., abhi123)"
               value={addFriendId}
               onChange={(e) => setAddFriendId(e.target.value)}
-              className="flex-1"
+              className="flex-1 bg-slate-700/50 border-slate-600 text-slate-200 placeholder:text-slate-400"
             />
             <Button 
-              className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700"
+              className="bg-gradient-to-r from-pink-600 to-fuchsia-600 hover:from-pink-700 hover:to-fuchsia-700 text-white"
             >
               Add
             </Button>
           </div>
-          <div className="text-sm text-purple-600 bg-purple-100 p-2 rounded-md">
+          <div className="text-sm text-slate-300 bg-slate-700/50 p-2 rounded-md">
             <strong>Your ID:</strong> demo123
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Leaderboard */}
-      <Card className="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-blue-50 border-purple-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-purple-800">
-            <Users className="w-5 h-5" />
-            Friends Leaderboard
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No friends yet. Add some friends to see the leaderboard!</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="w-5 h-5 text-pink-400" />
+          <h4 className="font-medium text-slate-100">Friends Leaderboard</h4>
+        </div>
+        <div className="text-center py-8">
+          <Users className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+          <p className="text-slate-400">No friends yet. Add some friends to see the leaderboard!</p>
+        </div>
+      </div>
     </motion.div>
   );
 } 

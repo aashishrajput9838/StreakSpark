@@ -52,7 +52,7 @@ const adminUids = ['nL1uSGOcefbt22abnYDD04bn1Ta2'];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user, logout } = useAuthContext();
   const { habits, createHabit, updateHabit, deleteHabit: deleteHabitFromHook } = useHabits();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
@@ -60,6 +60,7 @@ const Dashboard = () => {
   const [newTodoText, setNewTodoText] = useState('');
   const [editingHabit, setEditingHabit] = useState<string | null>(null);
   const [newHabitText, setNewHabitText] = useState('');
+  const [editingHabitText, setEditingHabitText] = useState('');
   const [weatherData, setWeatherData] = useState<{
     temperature: number;
     condition: string;
@@ -76,6 +77,8 @@ const Dashboard = () => {
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const { toast } = useToast();
+  const [loadingHabits, setLoadingHabits] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
 
@@ -89,6 +92,7 @@ const Dashboard = () => {
 
   const fetchWeather = () => {
     setLoadingWeather(true);
+    setWeatherError(null);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
@@ -109,17 +113,18 @@ const Dashboard = () => {
           });
         } catch (error) {
           console.error("Failed to fetch weather data", error);
+          setWeatherError("Failed to load weather data");
         } finally {
           setLoadingWeather(false);
         }
       }, (error) => {
         console.error("Error getting location", error);
         setLoadingWeather(false);
-        alert("Could not get your location for weather updates. Please enable location services.");
+        setWeatherError("Location access denied. Please enable location services.");
       });
     } else {
       setLoadingWeather(false);
-      alert("Geolocation is not supported by this browser.");
+      setWeatherError("Geolocation is not supported by this browser.");
     }
   };
   
@@ -206,23 +211,73 @@ const Dashboard = () => {
   };
 
   const deleteHabit = async (id: string) => {
-    await deleteHabitFromHook(id);
+    setLoadingHabits(true);
+    try {
+      await deleteHabitFromHook(id);
+      toast({
+        title: "Success!",
+        description: "Habit deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting habit:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete habit. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingHabits(false);
+    }
   };
 
   const editHabit = async (id: string, newName: string) => {
-    await updateHabit(id, { title: newName });
-    setEditingHabit(null);
-    setNewHabitText('');
+    if (newName.trim()) {
+      setLoadingHabits(true);
+      try {
+        await updateHabit(id, { title: newName.trim() });
+        setEditingHabit(null);
+        setEditingHabitText('');
+        toast({
+          title: "Success!",
+          description: "Habit updated successfully.",
+        });
+      } catch (error) {
+        console.error('Error updating habit:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update habit. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingHabits(false);
+      }
+    }
   };
 
   const addHabit = async () => {
     if (newHabitText.trim()) {
-      await createHabit({
-        title: newHabitText,
-        frequency: 'daily',
-        isFavorite: true,
-      });
-      setNewHabitText('');
+      setLoadingHabits(true);
+      try {
+        await createHabit({
+          title: newHabitText.trim(),
+          frequency: 'daily',
+          isFavorite: true,
+        });
+        setNewHabitText('');
+        toast({
+          title: "Success!",
+          description: "New habit created successfully.",
+        });
+      } catch (error) {
+        console.error('Error creating habit:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create habit. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingHabits(false);
+      }
     }
   };
 
@@ -328,7 +383,17 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-8">
           <motion.div variants={itemVariants} className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-slate-100">
-              Good morning, <span className="text-purple-400">{user?.displayName?.split(' ')[0] || 'Guest'}</span>
+              {user ? (
+                <>
+                  Good morning, <span className="text-purple-400">
+                    {user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'User'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  Welcome to <span className="text-purple-400">StreakSpark</span>
+                </>
+              )}
             </h1>
             <motion.span 
               className="text-4xl"
@@ -346,16 +411,37 @@ const Dashboard = () => {
             <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-full transition-all duration-300 hover:scale-110">
               <Calendar className="w-5 h-5" />
             </Button>
-            {user && user.photoURL ? (
-              <img 
-                src={user.photoURL} 
-                alt="User Profile" 
-                className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
-              />
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
-                <User className="w-6 h-6 text-white" />
+            {user ? (
+              <div className="flex items-center gap-2">
+                {user.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt="User Profile" 
+                    className="w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 hover:ring-2 hover:ring-purple-500 shadow-lg"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-12 shadow-lg hover:shadow-purple-500/25">
+                    <span className="text-white text-sm font-medium">
+                      {user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                )}
+                <Button 
+                  onClick={() => logout()} 
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-red-400 hover:bg-red-900/20 px-3 py-1 rounded-full transition-all duration-300"
+                >
+                  Logout
+                </Button>
               </div>
+            ) : (
+              <Button 
+                onClick={() => navigate('/login')} 
+                className="bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white px-4 py-2 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25"
+              >
+                Sign In
+              </Button>
             )}
           </motion.div>
         </div>
@@ -447,6 +533,14 @@ const Dashboard = () => {
                   </div>
                   {loadingWeather ? (
                     <div className="text-center p-8 text-slate-400">Loading weather...</div>
+                  ) : weatherError ? (
+                    <div className="text-center p-8">
+                      <div className="text-4xl mb-2">🌤️</div>
+                      <div className="text-sm text-slate-400 mb-2">{weatherError}</div>
+                      <Button onClick={fetchWeather} size="sm" className="bg-sky-600 hover:bg-sky-700 text-white">
+                        Retry
+                      </Button>
+                    </div>
                   ) : weatherData ? (
                     <div className="text-center">
                       <div className="text-6xl mb-2">{weatherData.condition}</div>
@@ -683,63 +777,74 @@ const Dashboard = () => {
                       className="h-8 w-24 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200 transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-violet-500/10"
                       onKeyPress={(e) => e.key === 'Enter' && addHabit()}
                     />
-                    <Button size="sm" onClick={addHabit} className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25">
-                      <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
+                    <Button size="sm" onClick={addHabit} disabled={loadingHabits} className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                      {loadingHabits ? (
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Plus className="w-3 h-3 transition-transform duration-300 hover:rotate-90" />
+                      )}
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {favoriteHabits.map((habit, index) => (
-                    <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
-                      <div className={`w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
-                        {habit.title.slice(0, 2)}
-                      </div>
-                      <div className="flex-1">
-                        {editingHabit === habit.id ? (
-                          <div className="flex gap-2">
-                            <Input
-                              value={newHabitText}
-                              onChange= {(e) => setNewHabitText(e.target.value)}
-                              className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
-                              onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
-                            />
-                            <Button size="sm" onClick={() => editHabit(habit.id, newHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
-                              <Check className="w-3 h-3" />
-                            </Button>
-                            <Button size="sm" onClick={() => setEditingHabit(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.title}</div>
-                            <div className="flex items-center gap-2">
-                              <div className="text-xs text-slate-400">Streak: {habit.streak}</div>
+                  {favoriteHabits.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-2">🌟</div>
+                      <p className="text-slate-400 text-sm">No favorite habits yet. Create your first habit!</p>
+                    </div>
+                  ) : (
+                    favoriteHabits.map((habit, index) => (
+                      <motion.div variants={itemVariants} key={habit.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
+                        <div className={`w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center text-white text-xs font-medium transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 shadow-lg`}>
+                          {habit.title.slice(0, 2)}
+                        </div>
+                        <div className="flex-1">
+                          {editingHabit === habit.id ? (
+                            <div className="flex gap-2">
+                              <Input
+                                value={newHabitText}
+                                onChange= {(e) => setNewHabitText(e.target.value)}
+                                className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
+                                onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
+                              />
+                              <Button size="sm" onClick={() => editHabit(habit.id, newHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" onClick={() => setEditingHabit(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                                <X className="w-3 h-3" />
+                              </Button>
                             </div>
-                          </>
-                        )}
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setEditingHabit(habit.id);
-                            setNewHabitText(habit.title);
-                          }}
-                          className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => deleteHabit(habit.id)}
-                          className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+                          ) : (
+                            <>
+                              <div className="text-sm font-medium text-slate-200 transition-all duration-300 group-hover:text-violet-300">{habit.title}</div>
+                              <div className="flex items-center gap-2">
+                                <div className="text-xs text-slate-400">Streak: {habit.streak}</div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setEditingHabit(habit.id);
+                              setNewHabitText(habit.title);
+                            }}
+                            className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => deleteHabit(habit.id)}
+                            className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </div>
               </div>
             </Card>

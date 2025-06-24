@@ -23,6 +23,7 @@ const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose }) => {
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
   const [newHabitFrequency, setNewHabitFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!open) return null;
 
@@ -30,6 +31,7 @@ const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose }) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
 
+    setIsLoading(true);
     try {
       await createHabit({
         title: newHabitName.trim(),
@@ -41,7 +43,10 @@ const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose }) => {
       toast.success('Habit created successfully');
       onClose();
     } catch (error) {
-      toast.error('Failed to create habit');
+      console.error('Error creating habit:', error);
+      toast.error('Failed to create habit. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,8 +96,8 @@ const AddHabitModal: React.FC<AddHabitModalProps> = ({ open, onClose }) => {
                     </SelectContent>
                     </Select>
                 </div>
-                <Button type="submit" className="w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white font-bold shadow-lg transition-transform transform hover:scale-105">
-                    Spark New Habit
+                <Button type="submit" className="w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-700 hover:to-purple-700 text-white font-bold shadow-lg transition-transform transform hover:scale-105" disabled={isLoading}>
+                    {isLoading ? 'Creating...' : 'Spark New Habit'}
                 </Button>
                 </form>
             </div>

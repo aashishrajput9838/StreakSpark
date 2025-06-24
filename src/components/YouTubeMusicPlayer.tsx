@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react'; add dragging (scrubbing) or a more advanced UI
+import React, { useState, useEffect, useRef } from 'react'; // add dragging (scrubbing) or a more advanced UI
 import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaHeart, FaRegHeart, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
@@ -29,6 +36,7 @@ const YouTubeMusicPlayer: React.FC = () => {
   const [muted, setMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(100);
 
   const playerRef = useRef<any>(null);
   const ytPlayerDivRef = useRef<HTMLDivElement>(null);
@@ -116,6 +124,13 @@ const YouTubeMusicPlayer: React.FC = () => {
     };
   }, [nowPlaying, isPlaying]);
 
+  // Update player volume when volume state changes
+  useEffect(() => {
+    if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
+      playerRef.current.setVolume(volume);
+    }
+  }, [volume, nowPlaying]);
+
   const playSong = async () => {
     setError('');
     setEmbedUrl('');
@@ -133,7 +148,11 @@ const YouTubeMusicPlayer: React.FC = () => {
           videoId: item.id.videoId,
           title: item.snippet.title,
           channel: item.snippet.channelTitle,
-          thumbnail: item.snippet.thumbnails?.default?.url || '',
+          thumbnail:
+            item.snippet.thumbnails?.maxres?.url ||
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.medium?.url ||
+            item.snippet.thumbnails?.default?.url || '',
         }));
         setPlaylist(songs);
         setNowPlaying(songs[0]);
@@ -231,36 +250,29 @@ const YouTubeMusicPlayer: React.FC = () => {
 
   return (
     <div>
-      <input
-        type="text"
-        placeholder="Search for a song..."
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        style={{
-          padding: 8,
-          width: 220,
-          marginRight: 8,
-          color: '#fff',
-          background: '#222',
-          border: '1px solid #444',
-          borderRadius: 6
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          playSong();
         }}
-      />
-      <button onClick={playSong} style={{ padding: 8 }}>Play</button>
-      <button
-        onClick={() => setShowFavorites(f => !f)}
-        style={{ padding: 8, marginLeft: 8, background: '#1db954', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center' }}
       >
-        {showFavorites ? 'Hide Favorites' : 'Show Favorites'}
-      </button>
-      <a
-        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ color: '#1db954', marginLeft: 12 }}
-      >
-        Open on YouTube
-      </a>
+        <input
+          type="text"
+          placeholder="Search for a song..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          style={{
+            padding: 8,
+            width: 220,
+            marginRight: 8,
+            color: '#fff',
+            background: '#222',
+            border: '1px solid #444',
+            borderRadius: 6
+          }}
+        />
+      </form>
       <div style={{ marginTop: 20 }}>
         {loading && <div style={{ color: '#fff' }}>Loading...</div>}
         {error && <div style={{ color: 'orange', marginTop: 8 }}>{error}</div>}
@@ -307,6 +319,18 @@ const YouTubeMusicPlayer: React.FC = () => {
               <button onClick={handleToggleMute} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 22, cursor: 'pointer' }} title={muted ? 'Unmute' : 'Mute'}>
                 {muted ? <FaVolumeMute /> : <FaVolumeUp />}
               </button>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={muted ? 0 : volume}
+                onChange={e => {
+                  setVolume(Number(e.target.value));
+                  if (muted && Number(e.target.value) > 0) setMuted(false);
+                }}
+                style={{ width: 80, marginLeft: 8 }}
+                title="Volume"
+              />
             </div>
             {/* Always render the YouTube player div when nowPlaying is set */}
             {nowPlaying && (
@@ -317,57 +341,68 @@ const YouTubeMusicPlayer: React.FC = () => {
         {playlist.length > 0 && !loading && !error && (
           <div style={{ marginTop: 20 }}>
             <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: 8 }}>Playlist</div>
-            {playlist.map(song => (
-              <div
-                key={song.videoId}
-                style={{
-                  display: 'flex', alignItems: 'center', marginBottom: 8, background: '#222', borderRadius: 6, padding: 6, cursor: 'pointer',
-                  border: nowPlaying?.videoId === song.videoId ? '2px solid #1db954' : '1px solid #444'
-                }}
-                onClick={() => handlePlayFromPlaylist(song)}
-              >
-                <img src={song.thumbnail} alt={song.title} style={{ width: 48, height: 36, borderRadius: 4, marginRight: 10 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: '#fff', fontWeight: 500, fontSize: 15 }}>{song.title}</div>
-                  <div style={{ color: '#aaa', fontSize: 13 }}>{song.channel}</div>
-                </div>
-                <button
-                  onClick={e => { e.stopPropagation(); toggleFavorite(song); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, marginLeft: 8 }}
-                  title={isFavorite(song) ? 'Remove from favorites' : 'Add to favorites'}
+            <div style={{ maxHeight: 250, overflowY: 'auto' }}>
+              {playlist.map(song => (
+                <div
+                  key={song.videoId}
+                  style={{
+                    display: 'flex', alignItems: 'center', marginBottom: 8, background: '#222', borderRadius: 6, padding: 6, cursor: 'pointer',
+                    border: nowPlaying?.videoId === song.videoId ? '2px solid #1db954' : '1px solid #444'
+                  }}
+                  onClick={() => handlePlayFromPlaylist(song)}
                 >
-                  {isFavorite(song) ? '❤️' : '🤍'}
-                </button>
-              </div>
-            ))}
+                  <img src={song.thumbnail} alt={song.title} style={{ width: 48, height: 36, borderRadius: 4, marginRight: 10 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: '#fff', fontWeight: 500, fontSize: 15 }}>{song.title}</div>
+                    <div style={{ color: '#aaa', fontSize: 13 }}>{song.channel}</div>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleFavorite(song); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, marginLeft: 8 }}
+                    title={isFavorite(song) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {isFavorite(song) ? '❤️' : '🤍'}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         {favorites.length > 0 && showFavorites && (
           <div style={{ marginTop: 30 }}>
             <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: 8 }}>Favorites</div>
-            {favorites.map((song, idx) => (
-              <div
-                key={song.videoId}
-                style={{
-                  color: '#fff',
-                  fontSize: 15,
-                  marginBottom: 4,
-                  cursor: 'pointer',
-                  textDecoration: nowPlaying?.videoId === song.videoId ? 'underline' : 'none'
-                }}
-                onClick={() => {
-                  setNowPlaying(song);
-                  setEmbedUrl(`https://www.youtube.com/embed/${song.videoId}?autoplay=1&controls=1`);
-                  setShowOverlay(true);
-                }}
-                title="Click to play"
-              >
-                {idx + 1}. {song.title}
-              </div>
-            ))}
+            <div style={{ maxHeight: 250, overflowY: 'auto' }}>
+              {favorites.map((song, idx) => (
+                <div
+                  key={song.videoId}
+                  style={{
+                    color: '#fff',
+                    fontSize: 15,
+                    marginBottom: 4,
+                    cursor: 'pointer',
+                    textDecoration: nowPlaying?.videoId === song.videoId ? 'underline' : 'none'
+                  }}
+                  onClick={() => {
+                    setNowPlaying(song);
+                    setEmbedUrl(`https://www.youtube.com/embed/${song.videoId}?autoplay=1&controls=1`);
+                    setShowOverlay(true);
+                  }}
+                  title="Click to play"
+                >
+                  {idx + 1}. {song.title}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
+      <button
+        type="button"
+        onClick={() => setShowFavorites(f => !f)}
+        style={{ padding: 8, marginTop: 16, background: '#1db954', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', width: '100%' }}
+      >
+        {showFavorites ? 'Hide Favorites' : 'Show Favorites'}
+      </button>
     </div>
   );
 };

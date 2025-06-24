@@ -96,6 +96,46 @@ const Dashboard = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const db = getFirestore();
 
+  const changeMonth = (direction: number) => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setMonth(newDate.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const generateCalendar = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const calendarDays = [];
+    let week: (number | null)[] = [];
+
+    // Add empty cells for the days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      week.push(null);
+    }
+
+    // Add the days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      if (week.length === 7) {
+        calendarDays.push(week);
+        week = [];
+      }
+      week.push(day);
+    }
+
+    // Add empty cells for the remaining days of the week
+    while (week.length < 7) {
+      week.push(null);
+    }
+    calendarDays.push(week);
+
+    return calendarDays;
+  };
+
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
 
   const [shouldDoItems, setShouldDoItems] = useState([
@@ -185,13 +225,7 @@ const Dashboard = () => {
     { id: 1, name: 'Running Competition', date: '31 Dec', distance: '20miles', time: '09:00', startPoint: 'Starting Point' }
   ]);
 
-  const calendar = [
-    [1, 2, 3, 4, 5, 6],
-    [7, 8, 9, 10, 11, 12, 13],
-    [14, 15, 16, 17, 18, 19, 20],
-    [21, 22, 23, 24, 25, 26, 27],
-    [28, 29, 30, 31]
-  ];
+  const calendar = generateCalendar(currentDate);
 
   useEffect(() => {
     if (!user) {
@@ -612,41 +646,40 @@ const Dashboard = () => {
 
             {/* Calendar */}
             <Card className="p-6 bg-slate-900/50 backdrop-blur-sm border-sky-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-sky-500/10">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-100">{monthYear}</h3>
-                <Button variant="ghost" size="sm" className="bg-sky-900/30 text-sky-400 rounded-full hover:bg-sky-900/50 transition-all duration-300 hover:scale-110 hover:rotate-12">
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">{monthYear}</h3>
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="icon" onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-full hover:bg-appPalette-dark-background">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-appPalette-dark-background">
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
-              <div className="grid grid-cols-7 gap-1 mb-4">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                  <div key={i} className="text-xs text-slate-500 text-center p-2 transition-colors duration-300 hover:text-sky-400">{day}</div>
-                ))}
+              <div className="grid grid-cols-7 gap-2 text-center text-xs text-appPalette-dark-muted">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => <div key={day}>{day}</div>)}
               </div>
-              <div className="space-y-1">
-                {calendar.map((week, weekIndex) => (
-                  <div key={weekIndex} className="grid grid-cols-7 gap-1">
-                    {week.map((day, dayIndex) => (
-                      <button
-                        key={dayIndex}
-                        onClick={() => setSelectedDate(day)}
-                        className={`
-                          text-sm p-2 rounded-lg text-center transition-all duration-300 hover:scale-110 hover:shadow-lg
-                          ${day === selectedDate 
-                            ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-lg shadow-sky-500/25 scale-110' 
-                            : 'text-slate-300 hover:bg-slate-800/50'
-                          }
-                          ${day === 22 ? 'border border-sky-500 animate-pulse' : ''}
+              <div className="mt-2 grid grid-cols-7 gap-y-2 text-center text-sm">
+                {calendar.flat().map((day, index) => (
+                  <div key={index} className={`p-1 flex justify-center items-center h-8 ${day ? 'cursor-pointer' : ''}`}>
+                    {day && (
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200
+                          ${day === new Date().getDate() && currentDate.getMonth() === new Date().getMonth() && currentDate.getFullYear() === new Date().getFullYear() ? 'bg-appPalette-purple text-white font-bold shadow-lg' : ''}
+                          ${day === selectedDate ? 'ring-2 ring-appPalette-purple' : ''}
+                          hover:bg-appPalette-purple/20
                         `}
+                        onClick={() => day && setSelectedDate(day)}
                       >
                         {day}
-                      </button>
-                    ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-sm text-emerald-400 font-medium animate-pulse">
-                +3.2% from last month
+              <div className="mt-4 text-sm">
+                <p className="text-green-400">+3.2% from last month</p>
               </div>
             </Card>
           </motion.div>
@@ -721,55 +754,63 @@ const Dashboard = () => {
                     <motion.div variants={itemVariants} key={todo.id} className="flex items-center gap-3 group transition-all duration-300 hover:scale-105 hover:bg-slate-800/30 rounded-lg p-2">
                       <div className="text-lg transition-all duration-300 group-hover:scale-125">{todo.icon}</div>
                       <div className="flex-1">
-                        {editingTodo === todo.id ? (
-                          <div className="flex gap-2">
+                        <p className={`transition-colors duration-300 ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>
+                          {editingTodo === todo.id ? (
                             <Input
+                              type="text"
                               value={newTodoText}
                               onChange={(e) => setNewTodoText(e.target.value)}
-                              className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
-                              onKeyPress={(e) => e.key === 'Enter' && editTodo(todo.id, newTodoText)}
+                              onBlur={() => editTodo(todo.id, newTodoText)}
+                              onKeyDown={(e) => e.key === 'Enter' && editTodo(todo.id, newTodoText)}
+                              className="bg-gray-800 border-none focus:ring-2 focus:ring-purple-500"
+                              autoFocus
                             />
-                            <Button size="sm" onClick={() => editTodo(todo.id, newTodoText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
-                              <Check className="w-3 h-3" />
-                            </Button>
-                            <Button size="sm" onClick={() => setEditingTodo(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                          ) : (
+                            todo.title
+                          )}
+                        </p>
+                        <div className="flex items-center text-xs text-gray-500 mt-1">
+                          <Clock className="w-3 h-3 mr-1" />
+                          <span>{new Date(todo.createdAt?.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          <MapPin className="w-3 h-3 mr-1 ml-3" />
+                          <span>Nowhere</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {editingTodo === todo.id ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setEditingTodo(null);
+                                setNewTodoText(todo.title);
+                              }}
+                              className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
+                            >
                               <X className="w-3 h-3" />
                             </Button>
-                          </div>
+                          </>
                         ) : (
                           <>
-                            <div className={`font-medium text-sm transition-all duration-300 ${todo.completed ? 'line-through text-slate-500' : 'text-slate-200 group-hover:text-blue-300'}`}>
-                              {todo.title}
-                            </div>
-                            {todo.time && todo.location && (
-                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                              <Clock className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                              <span>{todo.time}</span>
-                              <MapPin className="w-3 h-3 transition-all duration-300 group-hover:text-blue-400" />
-                              <span>{todo.location}</span>
-                            </div>
-                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setEditingTodo(todo.id);
+                                setNewTodoText(todo.title);
+                              }}
+                              className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => deleteTodo(todo.id)}
+                              className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           </>
                         )}
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setEditingTodo(todo.id);
-                            setNewTodoText(todo.title);
-                          }}
-                          className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => deleteTodo(todo.id)}
-                          className="h-6 w-6 p-0 bg-red-800/50 hover:bg-red-700 transition-all duration-300 hover:scale-110"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
                       </div>
                       <button
                         onClick={() => toggleTodo(todo.id)}

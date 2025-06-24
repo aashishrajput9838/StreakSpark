@@ -20,7 +20,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from 'react-router-dom';
-import { addTracksToPlaylist } from '@/lib/spotifyAPI';
 import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
 import SpotifyPlayer from './SpotifyPlayer';
@@ -802,15 +801,18 @@ const Dashboard = () => {
                           {editingHabit === habit.id ? (
                             <div className="flex gap-2">
                               <Input
-                                value={newHabitText}
-                                onChange= {(e) => setNewHabitText(e.target.value)}
+                                value={editingHabitText}
+                                onChange={(e) => setEditingHabitText(e.target.value)}
                                 className="h-6 text-xs bg-slate-800/50 border-slate-700/50 text-slate-200"
-                                onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, newHabitText)}
+                                onKeyPress={(e) => e.key === 'Enter' && editHabit(habit.id, editingHabitText)}
                               />
-                              <Button size="sm" onClick={() => editHabit(habit.id, newHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                              <Button size="sm" onClick={() => editHabit(habit.id, editingHabitText)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
                                 <Check className="w-3 h-3" />
                               </Button>
-                              <Button size="sm" onClick={() => setEditingHabit(null)} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
+                              <Button size="sm" onClick={() => {
+                                setEditingHabit(null);
+                                setEditingHabitText('');
+                              }} className="h-6 w-6 p-0 transition-all duration-300 hover:scale-110">
                                 <X className="w-3 h-3" />
                               </Button>
                             </div>
@@ -828,7 +830,7 @@ const Dashboard = () => {
                             size="sm"
                             onClick={() => {
                               setEditingHabit(habit.id);
-                              setNewHabitText(habit.title);
+                              setEditingHabitText(habit.title);
                             }}
                             className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700 transition-all duration-300 hover:scale-110"
                           >

@@ -79,7 +79,7 @@ export function useHabits() {
       // Update user stats
       const totalHabits = habits.length + 1;
       const totalStreak = habits.reduce((total, habit) => total + habit.streak, 0);
-      await updateDocument('userProfiles', user.uid, {
+      await updateDocument('users', user.uid, {
         totalHabits,
         totalStreak,
       });
@@ -99,7 +99,7 @@ export function useHabits() {
       if (updates.streak !== undefined) {
         const updatedHabits = habits.map(h => h.id === habitId ? { ...h, ...updates } : h);
         const totalStreak = updatedHabits.reduce((total, habit) => total + habit.streak, 0);
-        await updateDocument('userProfiles', user.uid, {
+        await updateDocument('users', user.uid, {
           totalStreak,
         });
       }
@@ -121,7 +121,7 @@ export function useHabits() {
       const totalStreak = habits.reduce((total, habit) => 
         habit.id === habitId ? total : total + habit.streak, 0
       );
-      await updateDocument('userProfiles', user.uid, {
+      await updateDocument('users', user.uid, {
         totalHabits,
         totalStreak,
       });
@@ -169,7 +169,7 @@ export function useHabits() {
         h.id === habitId ? { ...h, streak: newStreak } : h
       );
       const totalStreak = updatedHabits.reduce((total, habit) => total + habit.streak, 0);
-      await updateDocument('userProfiles', user.uid, {
+      await updateDocument('users', user.uid, {
         totalStreak,
       });
     } catch (error) {

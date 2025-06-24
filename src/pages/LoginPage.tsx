@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, fetchSignInMethodsForEmail, updateProfile, AuthProvider } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,26 +14,26 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Successfully logged in!");
+      toast.success("Successfully logged in!");
       navigate('/index'); // Redirect to main landing page after successful login
     } catch (error: any) {
       if (error.code === 'auth/invalid-credential' && email) {
         try {
           const methods = await fetchSignInMethodsForEmail(auth, email);
           if (methods.length === 0) {
-            alert("Error: No account found with this email address. Please check the email or sign up.");
+            toast.error("Error: No account found with this email address. Please check the email or sign up.");
           } else if (methods.includes('google.com')) {
-            alert("You originally signed in with Google. Please use the Google sign-in button to log in.");
+            toast.error("You originally signed in with Google. Please use the Google sign-in button to log in.");
           } else if (methods.includes('facebook.com')) {
-            alert("You originally signed in with Facebook. Please use the Facebook sign-in button to log in.");
+            toast.error("You originally signed in with Facebook. Please use the Facebook sign-in button to log in.");
           } else {
-            alert("Error: Incorrect password. Please try again.");
+            toast.error("Error: Incorrect password. Please try again.");
           }
         } catch (fetchError) {
-          alert(error.message); // Fallback to original error if fetch fails
+          toast.error(error.message); // Fallback to original error if fetch fails
         }
       } else {
-        alert(error.message);
+        toast.error(error.message);
       }
     }
   };
@@ -49,10 +50,10 @@ const LoginPage: React.FC = () => {
         await updateProfile(user, { displayName, photoURL });
       }
       
-      alert(`Successfully signed in with ${provider.providerId.replace('.com', '')}!`);
+      toast.success(`Successfully signed in with ${provider.providerId.replace('.com', '')}!`);
       navigate('/index');
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 

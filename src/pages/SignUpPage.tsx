@@ -9,6 +9,7 @@ import {
   AuthProvider
 } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ const SignUpPage: React.FC = () => {
     }
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      alert("Successfully signed up!");
+      toast.success("Successfully signed up!");
       navigate('/login'); // Redirect to login page after successful signup
     } catch (error: any) {
       alert(error.message);
@@ -43,7 +44,7 @@ const SignUpPage: React.FC = () => {
         await updateProfile(user, { displayName, photoURL });
       }
       
-      alert(`Successfully signed up with ${provider.providerId.replace('.com', '')}!`);
+      toast.success(`Successfully signed up with ${provider.providerId.replace('.com', '')}!`);
       navigate('/index');
     } catch (error: any) {
       alert(error.message);

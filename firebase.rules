@@ -29,6 +29,11 @@
             request.auth.uid == userId;
         }
 
+        // Todos subcollection for each user
+        match /users/{userId}/todos/{todoId} {
+          allow read, write: if isAuthenticated() && isOwner(userId);
+        }
+
         // Should Do Likes collection
         match /shouldDoLikes/{itemId} {
           // Allow any authenticated user to read or update the like count

@@ -24,7 +24,15 @@ import { useToast } from "@/components/ui/use-toast";
 import LoginWithSpotify from './LoginWithSpotify';
 import SpotifyPlayer from './SpotifyPlayer';
 import FriendsLeaderboardWidget from './dashboard/FriendsLeaderboardWidget';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, runTransaction } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, onSnapshot, runTransaction, query, orderBy, addDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+
+interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+  icon?: string;
+  createdAt?: any;
+}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -56,7 +64,7 @@ const Dashboard = () => {
   const { habits, createHabit, updateHabit, deleteHabit: deleteHabitFromHook } = useHabits();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date().getDate());
-  const [editingTodo, setEditingTodo] = useState<number | null>(null);
+  const [editingTodo, setEditingTodo] = useState<string | null>(null);
   const [newTodoText, setNewTodoText] = useState('');
   const [editingHabit, setEditingHabit] = useState<string | null>(null);
   const [newHabitText, setNewHabitText] = useState('');
@@ -89,13 +97,7 @@ const Dashboard = () => {
   ]);
   const [userLikes, setUserLikes] = useState<{ [itemId: number]: boolean }>({});
 
-  useEffect(() => {
-    // Check for the Spotify token when the component mounts
-    const token = localStorage.getItem('spotifyAccessToken');
-    if (token) {
-      setSpotifyToken(token);
-    }
-  }, []);
+  const [todos, setTodos] = useState<Todo[]>([]);
 
   const fetchWeather = () => {
     setLoadingWeather(true);
@@ -148,24 +150,12 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchWeather();
-    const timerId = setInterval(() => setCurrentDate(new Date()), 60000);
-    return () => clearInterval(timerId);
+    // Check for the Spotify token when the component mounts
+    const token = localStorage.getItem('spotifyAccessToken');
+    if (token) {
+      setSpotifyToken(token);
+    }
   }, []);
-
-  const dayOfWeek = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-  const formattedTime = currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
-  const formattedDate = `${currentDate.getDate()} ${currentDate.toLocaleString('en-US', { month: 'short' })} ${currentDate.getFullYear()}`;
-  const fullDateTime = `${formattedDate}, ${formattedTime}`;
-  const monthYear = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-  const [todos, setTodos] = useState([
-    { id: 1, title: 'Study', time: '10:00am', location: 'K-Cafe', icon: '👨‍🎓', completed: false },
-    { id: 2, title: 'Groceries', time: '02:00pm', location: 'Heyday Market', icon: '🛒', completed: false },
-    { id: 3, title: 'Eat Healthy Food', time: '08:30am', location: 'Home', icon: '🥗', completed: true },
-    { id: 4, title: 'Read a book', time: '08:00am', location: 'Library', icon: '📚', completed: true },
-    { id: 5, title: 'Swimming for 45min', time: '06:00am', location: 'Gym Pool', icon: '🏊‍♀️', completed: true }
-  ]);
 
   const [competitions, setCompetitions] = useState<Competition[]>([
     { id: 1, name: 'Running Competition', date: '31 Dec', distance: '20miles', time: '09:00', startPoint: 'Starting Point' }
@@ -179,33 +169,63 @@ const Dashboard = () => {
     [28, 29, 30, 31]
   ];
 
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  useEffect(() => {
+    if (!user) {
+      setTodos([]);
+      return;
+    }
+    const todosCollectionRef = collection(db, 'users', user.uid, 'todos');
+    const q = query(todosCollectionRef, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const userTodos: Todo[] = [];
+      querySnapshot.forEach((doc) => {
+        userTodos.push({ id: doc.id, ...doc.data() } as Todo);
+      });
+      setTodos(userTodos);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const toggleTodo = async (id: string) => {
+    if (!user) return;
+    const todoDocRef = doc(db, 'users', user.uid, 'todos', id);
+    const todoToToggle = todos.find(t => t.id === id);
+    if (todoToToggle) {
+      await updateDoc(todoDocRef, {
+        completed: !todoToToggle.completed
+      });
+    }
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  const deleteTodo = async (id: string) => {
+    if (!user) return;
+    const todoDocRef = doc(db, 'users', user.uid, 'todos', id);
+    await deleteDoc(todoDocRef);
   };
 
-  const editTodo = (id: number, newTitle: string) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, title: newTitle } : todo
-    ));
+  const editTodo = async (id: string, newTitle: string) => {
+    if (!user) return;
+    if (newTitle.trim()) {
+      const todoDocRef = doc(db, 'users', user.uid, 'todos', id);
+      await updateDoc(todoDocRef, {
+        title: newTitle.trim()
+      });
+    }
     setEditingTodo(null);
     setNewTodoText('');
   };
 
-  const addTodo = () => {
-    if (newTodoText.trim()) {
-      const newTodo = {
-        id: Math.max(...todos.map(t => t.id), 0) + 1,
-        title: newTodoText,
+  const addTodo = async () => {
+    if (newTodoText.trim() && user) {
+      const todosCollectionRef = collection(db, 'users', user.uid, 'todos');
+      await addDoc(todosCollectionRef, {
+        title: newTodoText.trim(),
+        completed: false,
         icon: '✨',
-        completed: false
-      };
-      setTodos([newTodo, ...todos]);
+        createdAt: serverTimestamp(),
+      });
       setNewTodoText('');
     }
   };
@@ -402,6 +422,18 @@ const Dashboard = () => {
       }
     }
   };
+
+  useEffect(() => {
+    fetchWeather();
+    const timerId = setInterval(() => setCurrentDate(new Date()), 60000);
+    return () => clearInterval(timerId);
+  }, []);
+
+  const dayOfWeek = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+  const formattedTime = currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+  const formattedDate = `${currentDate.getDate()} ${currentDate.toLocaleString('en-US', { month: 'short' })} ${currentDate.getFullYear()}`;
+  const fullDateTime = `${formattedDate}, ${formattedTime}`;
+  const monthYear = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
     <motion.div 

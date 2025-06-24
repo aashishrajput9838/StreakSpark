@@ -84,8 +84,8 @@ const Dashboard = () => {
   const favoriteHabits = habits.filter(habit => habit.isFavorite);
 
   const [shouldDoItems, setShouldDoItems] = useState([
-    { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 2000 },
-    { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 5400 }
+    { id: 1, title: 'We go jimmm!!', icon: '💪', likes: 0 },
+    { id: 2, title: 'The 5am club', icon: '🏃‍♂️', likes: 0 }
   ]);
   const [userLikes, setUserLikes] = useState<{ [itemId: number]: boolean }>({});
 

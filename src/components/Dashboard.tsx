@@ -205,7 +205,7 @@ const Dashboard = () => {
         icon: '✨',
         completed: false
       };
-      setTodos([...todos, newTodo]);
+      setTodos([newTodo, ...todos]);
       setNewTodoText('');
     }
   };
